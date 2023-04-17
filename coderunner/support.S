@@ -7,7 +7,6 @@
 .equ EXIT,        93
 .equ STDIN,       0
 .equ SYS_READ,    63
-.equ SYS_READINT, 5
 
 # some constant to check calling conventions
 # TODO: make them 'random'
@@ -219,16 +218,6 @@ __end_checks:
       li a2, \MAX_CHARS
       li a7, SYS_READ
       ecall
-.endm 
-
-################################################################################
-# read string from STDIN
-################################################################################
-.macro read_dword buffer
-      li a7, SYS_READINT
-      ecall
-      la t0, \buffer
-      sd a0, 0(t0)
 .endm 
 
 ################################################################################
