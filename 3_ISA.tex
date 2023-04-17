@@ -1,0 +1,309 @@
+\documentclass[11pt]{article}
+%\usepackage[handout, nostamp]{moodle}
+%\usepackage{catchfilebetweentags}
+\usepackage[nostamp]{moodle}
+\usepackage{graphicx}
+\usepackage{comment}
+\usepackage{verbatim}
+\usepackage{fancyvrb}
+\usepackage{geometry}
+\pagestyle{empty}
+ \geometry{
+ a4paper,
+ total={175mm,260mm},
+ left=15mm,
+ top=15mm,
+ }
+
+\begin{document}
+\begin{quiz}{Le istruzioni e la rappresentazione dell'informazione}
+
+\begin{multi}[points=1,,shuffle=true]{RISC-V}
+Qual è il codice assembler RISC-V corrispondente alla seguente istruzione C? Si supponga che le variabili \textit{f}, \textit{g} e \textit{h} siano già state memorizzate nei registri \textit{x5}, \textit{x6} e \textit{x7} rispettivamente. Si utilizzi il numero minimo di istruzioni assembler.
+%
+\textit{f = g + (h – 5)};
+%
+\item* addi x5, x7, -5 \\ add x5, x5, x6
+\item  addi x5, x7, -5 \\ add x6, x5, x6
+\item  addi x6, x7, -5 \\ add x5, x5, x6
+\item  add  x5, x7, x5 \\ add x5, x5, x6
+\item  addi x5, x0, -5 \\ add x5, x5, x6        
+\end{multi}
+
+
+
+% \begin{cloze}[points=1,shuffle=false]{RISC-V}
+% Qual è il codice assembler RISC-V corrispondente alla seguente istruzione C? Si supponga che le variabili \textit{f, g, h, i} e \textit{j} siano assegnate rispettivamente ai registri \textit{x5, x6, x7, x28} e \textit{x29}. Si assuma che l’indirizzo base dei vettori \textit{A} e \textit{B} sia contenuto rispettivamente nei registri \textit{x10} e \textit{x11}.
+% \\
+% \texttt{B[8] = A[i $–$ j];}
+%  \begin{shortanswer}
+%      \item sub x30, x28, x29 // calcola i-j \\slli x30, x30, 3 //passa all'offset di byte moltiplicando per 8\\ld x30, 0(x3) // load di A[i-j]\\sd x30, 64(x11) // salva in B[8]
+%  \end{shortanswer}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{RISC-V}
+% Tradurre la seguente istruzione C in assembler RISC-V. Si supponga che le variabili \textit{f,
+% g, h, i} e \textit{j} siano assegnate rispettivamente ai registri
+% \textit{x5, x6, x7, x28} e \textit{x29}. Si assuma che l’indirizzo base
+% dei vettori \textit{A} e \textit{B} sia contenuto nei registri \textit{x10} e \textit{x11}
+% rispettivamente. Si assuma che gli elementi dei vettori
+% \textit{A} e \textit{B} siano parole su 8 byte:
+% \\
+
+% \texttt{B[8] = A[i] + A[j];}
+%  \begin{shortanswer}
+%      \item slli x28, x28, 3 // x28 = i*8 \\ld x28, 0(x10) // x28 = A[i] \\slli x29, x29, 3 // x29 = j*8 \\ld x29, 0(x11) // x29 = B[j] \\add x29, x28, x29 // Calcola x29 = A[i] + B[j] \\sd x29, 64(x11) // Salva il risultato in B[8]
+%  \end{shortanswer}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{RISC-V}
+% Quali sono le istruzioni C che corrispondono alle seguenti due istruzioni in assembler RISC-V? \\
+% \texttt{add f, g, h}\\
+% \texttt{add f, i, f} \begin{shortanswer}\item f=g+h+i \item f = g + h + i \end{shortanswer}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{Memoria}
+% Mostrare come il numero esadecimale \texttt{0xabcdef12} viene disposto in memoria in una macchina con codifica little-endian e in una con codifica
+% big-endian. Si supponga che i dati vengano memorizzati a partire dall’indirizzo 0 e che la dimensione della parola sia di 4 byte.\\
+% Little-endian:
+% \begin{itemize}
+%     \item 0 \begin{shortanswer} \item 12\end{shortanswer}
+%     \item 4 \begin{shortanswer} \item ef\end{shortanswer}
+%     \item 8 \begin{shortanswer} \item cd\end{shortanswer}
+%     \item 12 \begin{shortanswer} \item ab\end{shortanswer}
+% \end{itemize}
+% Big-endian:
+% \begin{itemize}
+%     \item 0 \begin{shortanswer} \item ab\end{shortanswer}
+%     \item 4 \begin{shortanswer} \item cd\end{shortanswer}
+%     \item 8 \begin{shortanswer} \item ef\end{shortanswer}
+%     \item 12 \begin{shortanswer} \item 12\end{shortanswer} 
+% \end{itemize}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{Memoria}
+% Tradurre \textit{0xabcdef12} in decimale.
+% \begin{shortanswer}\item 2882400018 \end{shortanswer}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{RISC-V}
+% Determinare quale istruzione assembler corrisponde alla seguente stringa binaria:\\$0000$ $0000$ $0001$ $0000$ $1000$ $0000$ $10111$ $0011_{due}$
+% \begin{shortanswer}
+%     \item R-type: add x1, x1, x1 \end{shortanswer}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{RISC-V}
+% Definire il tipo di istruzione e la rappresentazione esadecimale della seguente istruzione assembler: \texttt{sd x5, 32(x30)}\\
+% \begin{itemize}
+%     \item Tipo istruzione: \begin{shortanswer} \item S-type\end{shortanswer}
+%     \item Rappresentazione esadecimale: \begin{shortanswer} \item 0x25F3023\end{shortanswer}
+% \end{itemize}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{RISC-V}
+% Definire il tipo di istruzione, l’istruzione in linguaggio assembler e la rappresentazione esadecimale dell’istruzione descritta dai seguenti campi RISC-V:\\
+% \texttt{codop = 0x33, funz3 = 0x0, funz7 = 0x20, rs2 = 5, rs1 = 7, rd = 6}\\
+% \begin{itemize}
+%     \item Tipo istruzione: \begin{shortanswer} \item R-type\end{shortanswer}
+%     \item Assembler: \begin{shortanswer} \item sub x6, x7, x5\end{shortanswer}
+%     \item Rappresentazione esadecimale: \begin{shortanswer} \item 0x40538333\end{shortanswer}
+% \end{itemize}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{RISC-V}
+% Definire il tipo di istruzione, l’istruzione in linguaggio assembler e la rappresentazione esadecimale dell’istruzione descritta dai seguenti campi RISC-V:\\
+% \texttt{codop = 0x3, funz3 = 0x3, rs1 = 27, rd = 3, imm = 0x4}\\
+% \begin{itemize}
+%     \item Tipo istruzione: \begin{shortanswer} \item I-type\end{shortanswer}
+%     \item Assembler: \begin{shortanswer} \item ld x3, 4(x27)\end{shortanswer}
+%     \item Rappresentazione esadecimale: \begin{shortanswer} \item 0x4DB183\end{shortanswer}
+% \end{itemize}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{Operazioni logiche}
+%  Si supponga che i registri seguenti contengano i valori:\\ \texttt{x5 = 0x00000000AAAAAAAA}, \texttt{x6 = 0x1234567812345678}
+%  \begin{itemize}
+%      \item Supponendo che i registri x5 e x6 contengano i valori riportati sopra, determinare il contenuto di x7 dopo l’esecuzione delle seguenti
+%            istruzioni:\\ 
+%            \texttt{slli x7, x5, 4}\\
+%            \texttt{or x7, x7, x6} \begin{shortanswer} \item 0x1234567ababefef8\end{shortanswer}
+%      \item Supponendo che i registri x5 e x6 contengano i valori riportati sopra, determinare il contenuto di x7 dopo l’esecuzione delle seguenti
+%            istruzioni:\\
+%            \texttt{slli x7, x6, 4} \begin{shortanswer} \item 0x2345678123456780\end{shortanswer}
+%      \item Supponendo che i registri x5 e x6 contengano i valori riportati sopra, determinare il contenuto di x7 dopo l’esecuzione delle seguenti
+%            istruzioni:\\
+%            \texttt{srli x7, x5, 3}\\
+%            \texttt{andi x7, x7, 0xFEF} \begin{shortanswer} \item 0x545\end{shortanswer}
+%  \end{itemize}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{Operazioni logiche}
+% Determinare la sequenza più corta di
+% istruzioni RISC-V che si possono utilizzare per implementare la pseudoistruzione seguente:
+% \\
+% \texttt{not x5, x6 // inversione bit a bit}
+% \begin{shortanswer}
+%     \item xori x5, x6, -1
+% \end{shortanswer}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{Operazioni logiche}
+% Determinare la sequenza più corta di
+% istruzioni RISC-V che si possono utilizzare per tradurre la seguente istruzione scritta in linguaggio C. Si supponga che \textit{x6 = A} e che \textit{x17} contenga l'indirizzo di base del vettore C. 
+% \\
+% \texttt{A = C[0] << 4;}
+% \begin{shortanswer}
+%     \item ld x6, 0(x17) \\slli x6, x6, 4
+% \end{shortanswer}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{Memoria}
+% Supponiamo che i registri \textit{x5} e \textit{x6} contengano i numeri \texttt{0x80000000000000000} e
+% \texttt{0xD0000000000000000} rispettivamente.
+
+% \begin{itemize}
+%     \item Determinare quale sarà il contenuto di \textit{x30} dopo l’esecuzione di questa istruzione assembler: \texttt{add x30, x5, x6} \begin{shortanswer}\item 0x5000000000000000\end{shortanswer}
+%     \item Il contenuto di x30 è corretto, o si è verificato un overflow? \begin{shortanswer}\item overflow\end{shortanswer}
+%     \item Si supponga che i registri \textit{x5} e \textit{x6} contengano i valori riportati sopra. Determinare quale sarà il contenuto di \textit{x30} dopo l’esecuzione di questa istruzione assembler: \texttt{sub x30, x5, x6} \begin{shortanswer}\item 0xB000000000000000\end{shortanswer}
+%     \item Il contenuto di x30 è corretto, o si è verificato un overflow? \begin{shortanswer}\item corretto\end{shortanswer}
+%     \item Si supponga che i registri x5 e x6 contengano i valori riportati sopra. Determinare quale sarà il contenuto di x30 dopo l’esecuzione di queste due istruzioni assembler:
+%     \texttt{add x30, x5, x6}\\
+%     \texttt{add x30, x30, x5}
+%     \begin{shortanswer}
+%         \item 0xD000000000000000
+%     \end{shortanswer}
+%     \item Il contenuto di x30 è corretto, o si è verificato un overflow? \begin{shortanswer}\item overflow\end{shortanswer}
+%     \end{itemize}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{Memoria}
+% Si supponga che x5 contenga il valore 0x0000000001010000. Determinare il contenuto di x6 dopo l’esecuzione delle seguenti istruzioni:\\
+% \texttt{bge x5, x0, ELSE}\\
+% \texttt{jal x0, FINE}\\
+% \texttt{ELSE: ori x6, x0, 2}\\
+% \texttt{FINE:}
+% \begin{shortanswer}\item 2\end{shortanswer}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{Indirizzamento}
+% Si supponga che il program counter (PC) sia impostato a 0x20000000. (scrivere le risposte nella forma che segue (ad esempio [0x10000000, 0x2000000])
+% \begin{itemize}
+%     \item Qual è l’intervallo degli indirizzi a
+%             cui si può saltare utilizzando l’istruzione RISC-V di
+%             jump-and-link (jal)? (In altre parole, qual è l’insieme
+%             dei possibili valori che può assumere il PC dopo
+%             l’esecuzione dell’istruzione jal?). 
+%             \begin{shortanswer}
+%                 \item $[0x1ff00000, 0x200FFFFE]$
+%             \end{shortanswer}
+%     \item Qual è l’intervallo degli indirizzi a
+%             cui si può saltare utilizzando l’istruzione RISC-V di
+%             branch se uguale (beq)? (In altre parole, qual è l’insieme
+%             dei possibili valori che può assumere il PC dopo
+%             l’esecuzione dell’istruzione beq?). 
+%             \begin{shortanswer}
+%                 \item $[0x1FFFF000, 0x20000ffe]$
+%             \end{shortanswer}
+% \end{itemize}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{Cicli}
+% Si consideri la proposta di una nuova istruzione chiamata rpt. Questa istruzione combina in una sola istruzione il controllo di una condizione di fine ciclo e il decremento dell’indice di ciclo. Per esempio rpt
+% x29, ciclo avrebbe questo effetto:\\
+% \texttt{if (x29 > 0)}\\
+% \texttt{x29 = x29 $–$ 1;}\\
+% \texttt{goto ciclo}\\
+% \begin{itemize}
+%     \item Quale sarebbe il formato di
+%         istruzione più appropriato per implementare l’istruzione
+%         riportata sopra nell’insieme di istruzioni
+%         RISC-V?\begin{shortanswer}\item UJ\end{shortanswer}
+% \end{itemize}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{Cicli}
+% Si consideri il seguente ciclo in assembler RISC-V:\\
+% \texttt{CICLO: beq x6, x0, FINE}\\
+% \texttt{addi x6, x6, $–$1}\\
+% \texttt{addi x5, x5, 2}\\
+% \texttt{jal x0, CICLO}\\
+% \texttt{FINE:}
+% \begin{itemize}
+%     \item Si supponga che il registro x6 venga
+% inizializzato al valore 10. Quale sarà il contenuto finale
+% di x5 supponendo che x5 venga inizializzato a 0? \begin{shortanswer}
+%     \item 20
+% \end{shortanswer}
+%     \item Si supponga che il registro x6 sia
+% inizializzato con il valore numerico N. Quante istruzioni
+% RISC-V verranno eseguite dal ciclo scritto in
+% linguaggio assembler RISC-V e riportato sopra? \begin{shortanswer}
+%     \item 4*N+1 \item 4 * N + 1
+% \end{shortanswer}
+% \end{itemize}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{RISC-V}
+% Considerare il seguente frammento di codice C (N.B. i cicli sono annidati).\\
+% \texttt{for (i=0; i<a; i++)}\\
+% \texttt{for (j=0; j<b; j++)}\\
+% \texttt{D[4*j] = i+j;}
+% \begin{itemize}
+%     \item Quante istruzioni RISC-V sono necessarie
+% per implementare il precedente frammento di codice C? \begin{shortanswer}
+%     \item 13 \end{shortanswer}
+%     \item Supponendo che le variabili a e
+% b vengano inizializzate a 10 e 1, e che tutti gli elementi
+% di D contengano 0 all’inizio del ciclo, quante
+% istruzioni RISC-V verranno eseguite per completare
+% il ciclo? \begin{shortanswer}\item 123 \end{shortanswer}
+% \end{itemize}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{RISC-V}
+% Si consideri il seguente frammento di codice:\\
+% \texttt{lb x6, 0(x7)}\\
+% \texttt{sd x6, 8(x7)}\\
+% Si supponga che il registro x7 contenga l’indirizzo \textit{0x10000000} e che l’indirizzo dei dati sia \textit{0x112334455667788}.
+% \begin{itemize}
+%     \item Quale valore è contenuto all’indirizzo \textit{0x10000008} in una macchina con codifica “big-endian”? \begin{shortanswer}
+%     \item 0x11 \end{shortanswer}
+%     \item  Quale valore è contenuto all’indirizzo \textit{0x10000008} in una macchina con codifica
+% “little-endian”? \begin{shortanswer}\item 0x88 \end{shortanswer}
+% \end{itemize}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{RISC-V}
+% Scrivere il frammento di codice assembler RISC-V che crea la costante su 64 bit:
+% \textit{0x1122334455667788}$_2$ e la memorizza nel registro \textit{x10}.
+% \begin{shortanswer}
+% \item lui x10, 0x11223\\
+% addi x10, x10, 0x344\\
+% slli x10, x10, 32\\
+% lui x5, 0x55667\\
+% addi x5, x5, 0x788\\
+% add x10, x10, x5 \\
+% \end{shortanswer}
+% \end{cloze}
+
+% \begin{cloze}[points=1,shuffle=false]{RISC-V}
+% Un attimo prima che la funzione f ritorni alla funzione chiamante, che
+% cosa si sa sul contenuto dei registri \textit{x10-x14}, \textit{x8}, \textit{x1} e
+% \textit{sp}? Si ricordi che conosciamo l’intera funzione \textit{f}, ma
+% della funzione \textit{funz} abbiamo solamente la dichiarazione.\\
+% \texttt{int f(int a, int b, int c, int d) \{}\\
+% \texttt{   \hspace*{1cm} return funz(funz(a,b),c+d);}\\
+% \texttt{\}}\\
+% \begin{shortanswer}
+%     \item 
+% \end{shortanswer}
+% \end{cloze}
+% \begin{comment}
+% La risposta è questa ma latex fa schifo e non compila. È troppo lunga.
+
+% \begin{shortanswer} \item Non conosciamo il contenuto\\ di \textit{x10-x14}, in quanto \\ g può impostarli come preferisce. \\ Non conosciamo con certezza \\ il contenuto di \textit{x8}\\ ed \textit{sp}, ma sappiamo che i\\ loro valori sono identici a \\ quanto f è stata chiamata. \\Allo stesso modo, \\ non conosciamo esattamente il contenuto \\ di \textit{x1}, ma sappiamo \\ che il suo valore è\\ l'indirizzo di ritorno settato \\ dall'istruzione \texttt{jal x1, f} che \\ha invocato f. \end{shortanswer}
+% \end{comment}
+
+
+\end{quiz}
+\end{document}

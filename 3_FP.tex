@@ -1,0 +1,154 @@
+\documentclass[11pt]{article}
+%\usepackage[handout, nostamp]{moodle}
+%\usepackage{catchfilebetweentags}
+\usepackage[nostamp]{moodle}
+\usepackage{graphicx}
+\usepackage{comment}
+\usepackage{fancyvrb}
+\usepackage{geometry}
+\pagestyle{empty}
+ \geometry{
+ a4paper,
+ total={175mm,260mm},
+ left=15mm,
+ top=15mm,
+ }
+
+\begin{document}
+\begin{quiz}{Numeri in virgola mobile}
+
+\begin{cloze}[points=1,shuffle=false]{Codifica dei numeri in virgola mobile}
+Come verrebbe rappresentato il numero decimale -11.75 nell'inesistente codifica IEEE 754 in precisione
+insoddisfacente che utilizza 1 bit per il segno, 4 bit per l'esponente e 5 bit per la mantissa?
+\begin{itemize}
+\item bit di segno: \begin{shortanswer}\item 1 \end{shortanswer}
+\item esponente: \begin{shortanswer}\item 1010 \end{shortanswer}
+\item mantissa: \begin{shortanswer}\item 01111 \end{shortanswer}
+\end{itemize}
+\end{cloze}
+
+\begin{cloze}[points=1,shuffle=false]{Codifica dei numeri in virgola mobile}
+Come verrebbe rappresentato il numero decimale -5.0 nell'inesistente codifica IEEE 754 in precisione
+insoddisfacente che utilizza 1 bit per il segno, 4 bit per l'esponente e 5 bit per la mantissa?
+\begin{itemize}
+\item bit di segno: \begin{shortanswer}\item 1 \end{shortanswer}
+\item esponente: \begin{shortanswer}\item 1001 \end{shortanswer}
+\item mantissa: \begin{shortanswer}\item 01000 \end{shortanswer}
+\end{itemize}
+\end{cloze}
+
+\begin{cloze}[points=1,shuffle=false]{Codifica dei numeri in virgola mobile}
+Come verrebbe rappresentato il numero decimale 7.5 nell'inesistente codifica IEEE 754 in precisione
+insoddisfacente che utilizza 1 bit per il segno, 3 bit per l'esponente e 3 bit per la mantissa?
+\begin{itemize}
+\item bit di segno: \begin{shortanswer}\item 0\end{shortanswer}
+\item esponente: \begin{shortanswer}\item 101\end{shortanswer} 
+\item mantissa: \begin{shortanswer}\item 111\end{shortanswer}
+\end{itemize}
+\end{cloze}
+
+\begin{cloze}[points=1,shuffle=false]{Codifica dei numeri in virgola mobile}
+Come verrebbe rappresentato il numero decimale -11 nell'inesistente codifica IEEE 754 in precisione
+insoddisfacente che utilizza 1 bit per il segno, 3 bit per l'esponente e 3 bit per la mantissa?
+\begin{itemize}
+\item bit di segno: \begin{shortanswer}\item 1\end{shortanswer}
+\item esponente: \begin{shortanswer}\item 1101\end{shortanswer} 
+\item mantissa: \begin{shortanswer}\item 011\end{shortanswer}
+\end{itemize}
+\end{cloze}
+
+\begin{cloze}[points=1,shuffle=false]{Codifica dei numeri in virgola mobile}
+Come verrebbe rappresentato il numero decimale 34 nell'inesistente codifica IEEE 754 in precisione
+insoddisfacente che utilizza 1 bit per il segno, 4 bit per l'esponente e 4 bit per la mantissa?
+\begin{itemize}
+\item bit di segno: \begin{shortanswer}\item 0\end{shortanswer}
+\item esponente: \begin{shortanswer}\item 1100\end{shortanswer} 
+\item mantissa: \begin{shortanswer}\item 0001\end{shortanswer}
+\end{itemize}
+\end{cloze}
+
+\begin{cloze}[points=1,shuffle=false]{Codifica dei numeri in virgola mobile}
+Come verrebbe rappresentato il numero decimale -3.25 nell'inesistente codifica IEEE 754 in precisione
+insoddisfacente che utilizza 1 bit per il segno, 4 bit per l'esponente e 4 bit per la mantissa?
+\begin{itemize}
+\item bit di segno: \begin{shortanswer}\item 1\end{shortanswer}
+\item esponente: \begin{shortanswer}\item 1000\end{shortanswer} 
+\item mantissa: \begin{shortanswer}\item 1010\end{shortanswer}
+\end{itemize}
+\end{cloze}
+
+
+
+
+
+\begin{shortanswer}[points=1]{Codifica dei numeri in virgola mobile}
+Quale numero \`{e} rappresentato dalla seguente sequenza di bit ottenuta dall'inesistente codifica IEEE 754 in precisione
+insoddisfacente che utilizza 1 bit per il segno, 4 bit per l'esponente e 5 bit per la mantissa?
+ $$ 1101110011 $$
+Nota: esprimere il risultato usando il punto . come separatore tra la parte intera e quella frazionaria. Non inserire alcun carattere di spaziatura.
+\item[] -25.5
+\item[] -25,5
+\end{shortanswer}
+
+\begin{shortanswer}[points=1]{Codifica dei numeri in virgola mobile}
+Quale numero \`{e} rappresentato dalla seguente sequenza di bit ottenuta dall'inesistente codifica IEEE 754 in precisione
+insoddisfacente che utilizza 1 bit per il segno, 4 bit per l'esponente e 5 bit per la mantissa?
+ $$ 0110000010 $$
+Nota: esprimere il risultato usando il punto . come separatore tra la parte intera e quella frazionaria. Non inserire alcun carattere di spaziatura.
+\item[] +34
+\item[] +34.0
+\item[] +34,0
+\item[] 34
+\item[] 34.0
+\item[] 34,0
+\end{shortanswer}
+
+
+
+\begin{shortanswer}[points=1]{Codifica dei numeri in virgola mobile}
+Quale numero \`{e} rappresentato dalla seguente sequenza di bit ottenuta dall'inesistente codifica IEEE 754 in precisione
+insoddisfacente che utilizza 1 bit per il segno, 3 bit per l'esponente e 3 bit per la mantissa?
+$$ 1101011 $$
+Nota: esprimere il risultato usando il punto . come separatore tra la parte intera e quella frazionaria. Non inserire alcun carattere di spaziatura.
+\item[] -5.5
+\item[] -5,5
+\end{shortanswer}
+
+\begin{shortanswer}[points=1]{Codifica dei numeri in virgola mobile}
+Quale numero \`{e} rappresentato dalla seguente sequenza di bit ottenuta dall'inesistente codifica IEEE 754 in precisione
+insoddisfacente che utilizza 1 bit per il segno, 3 bit per l'esponente e 3 bit per la mantissa?
+$$ 0110010 $$
+Nota: esprimere il risultato usando il punto . come separatore tra la parte intera e quella frazionaria. Non inserire alcun carattere di spaziatura.
+\item[] 10
+\item[] 10.0
+\item[] 10,0
+\item[] +10
+\item[] +10.0
+\item[] +10,0
+\end{shortanswer}
+
+
+\begin{shortanswer}[points=1]{Codifica dei numeri in virgola mobile}
+Quale numero \`{e} rappresentato dalla seguente sequenza di bit ottenuta dall'inesistente codifica IEEE 754 in precisione
+insoddisfacente che utilizza 1 bit per il segno, 4 bit per l'esponente e 4 bit per la mantissa?
+$$ 110100001 $$
+Nota: esprimere il risultato usando il punto . come separatore tra la parte intera e quella frazionaria. Non inserire alcun carattere di spaziatura.
+\item[] -8.5
+\end{shortanswer}
+
+\begin{shortanswer}[points=1]{Codifica dei numeri in virgola mobile}
+Quale numero \`{e} rappresentato dalla seguente sequenza di bit ottenuta dall'inesistente codifica IEEE 754 in precisione
+insoddisfacente che utilizza 1 bit per il segno, 4 bit per l'esponente e 4 bit per la mantissa?
+$$ 010110101 $$
+Nota: esprimere il risultato usando il punto . come separatore tra la parte intera e quella frazionaria. Non inserire alcun carattere di spaziatura.
+\item[] 21
+\item[] 21.0
+\item[] 21,0
+\item[] +21
+\item[] +21.0
+\item[] +21,0
+\end{shortanswer}
+
+
+\end{quiz}
+\end{document}
