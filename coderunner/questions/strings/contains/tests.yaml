@@ -1,0 +1,53 @@
+---
+name: "contains"
+preload: "contains:"
+testcases:
+  - testcode: |
+      .section .data
+          buffer: .string  "test string"
+          low:    .byte  'A'
+          high:   .byte  'Z'
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          buffer: .string  "tesT string"
+          low:    .byte  'A'
+          high:   .byte  'Z'
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          buffer: .string  ""
+          low:    .byte  'A'
+          high:   .byte  'Z'
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          buffer: .string  "-----0"
+          low:    .byte  '0'
+          high:   .byte  '9'
+    expected: "a0: 1"
+    display: "SHOW"             
+  - testcode: |
+      .section .data
+          buffer: .string  "0"
+          low:    .byte  '0'
+          high:   .byte  '9'
+    expected: "a0: 1"
+    display: "SHOW" 
+  - testcode: |
+      .section .data
+          buffer: .string  "A9A"
+          low:    .byte  '0'
+          high:   .byte  '9'
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          buffer: .string  "A"
+          low:    .byte  '0'
+          high:   .byte  '9'
+    expected: "a0: 0"
+    display: "SHOW"    

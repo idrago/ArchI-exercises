@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+  <question type="coderunner">
+    <name>
+      <text>strlen</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[
+<p>
+Scrivere una procedura RISC-V per calcolare la lunghezza di una stringa di caratteri in C, 
+escluso il carattere terminatore. Le stringhe di caratteri in C sono memorizzate come un array di byte in memoria, 
+dove il byte '\0' (0x00) rappresenta la fine della stringa.
+</p>
+
+Il seguente codice in \(C\) realizza \(strlen\) (convertilo in RISC-V):
+
+<pre>
+unsigned long strlen(char *str) {
+    unsigned long i;
+    for (i = 0; str[i] != '\0'; i++);
+    return i;
+}
+</pre>
+
+Il valore di ritorno deve essere lasciato sul registro \(a0\).
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(strlen\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.data
+    str: .string  "My string"
+.text
+_start:
+    # call strlen
+    la   a0, str
+    jal  ra, strlen
+
+    #exit
+    li   a7, 10
+    ecall
+
+#****************************************************
+# completare la funzione strlen nel campo di sotto
+</pre>
+
+
+]]>
+    </text>
+    </questiontext>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <coderunnertype>riscv</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload>strlen:</answerpreload>
+    <globalextra><![CDATA[
+#*******************************************************************************
+# main()
+#*******************************************************************************
+_start:
+      # puts numbers on the saved registers
+      start_saved_registers_leaf
+
+      # call strlen
+      la   a0, str
+      jal  ra, strlen
+      printreg a0, __ra0
+
+      # check whether the saved registers are preserved
+      check_saved_registers
+
+
+
+]]>
+    </globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[
+#*******************************************************************************
+# strlen
+#
+# a0 - str
+#*******************************************************************************
+strlen:
+      add  t0, zero, zero        # i = 0
+
+                                 # Start of for loop
+strlen_loop:
+      add  t1, t0, a0            # Add the byte offset for str[i]
+      lbu  t1, 0(t1)             # dereference str[i]
+      beq  t1, zero, strlen_end  # if str[i] == 0, break for loop
+      addi t0, t0, 1             # i++
+      j    strlen_loop           # loop
+
+strlen_end:
+      addi a0, t0, 0             # Move t0 into a0 to return
+      ret
+
+
+]]>
+    </answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>0</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    str: .string  "string"
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 6</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    str: .string  "string"
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    str: .string  "S"
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 1</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    str: .string  "S"
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    str: .string  ""
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 0</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    str: .string  ""
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    str: .string  "str"
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 3</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    str: .string  "str"
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    str: .string  "str str"
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 7</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    str: .string  "str str"
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    str: .string  " s"
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 2</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    str: .string  " s"
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    str: .string  "1234"
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 4</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    str: .string  "1234"
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+    </testcases>
+  </question>
+</quiz>

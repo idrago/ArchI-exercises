@@ -1,0 +1,39 @@
+---
+name: "strlen"
+preload: "strlen:"
+testcases:
+  - testcode: |
+      .section .data
+          str: .string  "string"
+    expected: "a0: 6"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str: .string  "S"
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str: .string  ""
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str: .string  "str"
+    expected: "a0: 3"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str: .string  "str str"
+    expected: "a0: 7"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str: .string  " s"
+    expected: "a0: 2"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str: .string  "1234"
+    expected: "a0: 4"
+    display: "SHOW"

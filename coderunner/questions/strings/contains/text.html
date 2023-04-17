@@ -1,0 +1,57 @@
+<p>Usando il linguaggio assemblativo del RISC-V, scrivere una funzione \(contains\) che riceva:</p>
+
+<ul>
+    <li>sul registro \(a0\), <b>l'indirizzo</b> in memoria di una stringa (array di byte)</li>
+    <li>sul registro \(a1\), un byte che rappresenta un carattere ASCII (\(low\), limite inferiore)</li>
+    <li>sul registro \(a2\), un byte che rappresenta un carattere ASCII (\(high\), limite superiore)</li>
+</ul>
+
+<br/>La funzione ritorna \(1\) se la stringa ricevuta contiene almeno un carattere dell'intervallo \([low, high]\). La funzione ritorna \(0\) caso contrario.
+
+<br/><br/>Il seguente codice in \(C\) realizza \(contains\) (convertilo in RISC-V):
+
+<pre>
+int contains(char str[], char low, char high) {
+    int i=0;
+    while (str[i] != 0x00) {
+        if (str[i] >= low && str[i] <= high) {
+            return 1;
+        }
+        i++;
+    }
+    return 0;
+}
+</pre>
+
+<br/>
+<b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(contains\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.section .data
+    buffer: .string  "test string"
+    low:    .byte  'A'
+    high:   .byte  'Z'
+
+.text
+_start:
+    # call contains
+    la   a0, buffer
+    la   a1, low
+    la   a2, high
+    lbu  a1, 0(a1)
+    lbu  a2, 0(a2)
+    jal  ra, contains
+
+    # exit
+    li   a7, 10
+    ecall
+
+#******************************************
+# completare la funzione nel campo di sotto
+</pre>

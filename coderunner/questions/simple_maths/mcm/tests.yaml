@@ -1,0 +1,34 @@
+---
+name: "mcm"
+preload: "mcm:"
+testcases:
+  - testcode: |
+      .section .data
+        num1: .dword 5
+        num2: .dword 6
+    expected: "a0: 30"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num1: .dword 1
+        num2: .dword 5
+    expected: "a0: 5"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num1: .dword 5
+        num2: .dword 1
+    expected: "a0: 5"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num1: .dword 12
+        num2: .dword 8
+    expected: "a0: 24"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num1: .dword 12
+        num2: .dword 9
+    expected: "a0: 36"
+    display: "SHOW"

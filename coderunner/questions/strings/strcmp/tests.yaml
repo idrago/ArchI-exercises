@@ -1,0 +1,46 @@
+---
+name: "strcmp"
+preload: "strcmp:"
+testcases:
+  - testcode: |
+      .section .data
+          str1: .string  "string"
+          str2: .string  "string"
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str1: .string  "-string"
+          str2: .string  "string"
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str1: .string  ""
+          str2: .string  ""
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str1: .string  "string"
+          str2: .string  "string-"
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str1: .string  "S"
+          str2: .string  "S"
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str1: .string  ""
+          str2: .string  "S"
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str1: .string  "S"
+          str2: .string  ""
+    expected: "a0: 1"
+    display: "SHOW"

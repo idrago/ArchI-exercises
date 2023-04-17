@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+  <question type="coderunner">
+    <name>
+      <text>contains</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[
+<p>Usando il linguaggio assemblativo del RISC-V, scrivere una funzione \(contains\) che riceva:</p>
+
+<ul>
+    <li>sul registro \(a0\), <b>l'indirizzo</b> in memoria di una stringa (array di byte)</li>
+    <li>sul registro \(a1\), un byte che rappresenta un carattere ASCII (\(low\), limite inferiore)</li>
+    <li>sul registro \(a2\), un byte che rappresenta un carattere ASCII (\(high\), limite superiore)</li>
+</ul>
+
+<br/>La funzione ritorna \(1\) se la stringa ricevuta contiene almeno un carattere dell'intervallo \([low, high]\). La funzione ritorna \(0\) caso contrario.
+
+<br/><br/>Il seguente codice in \(C\) realizza \(contains\) (convertilo in RISC-V):
+
+<pre>
+int contains(char str[], char low, char high) {
+    int i=0;
+    while (str[i] != 0x00) {
+        if (str[i] >= low && str[i] <= high) {
+            return 1;
+        }
+        i++;
+    }
+    return 0;
+}
+</pre>
+
+<br/>
+<b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(contains\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.section .data
+    buffer: .string  "test string"
+    low:    .byte  'A'
+    high:   .byte  'Z'
+
+.text
+_start:
+    # call contains
+    la   a0, buffer
+    la   a1, low
+    la   a2, high
+    lbu  a1, 0(a1)
+    lbu  a2, 0(a2)
+    jal  ra, contains
+
+    # exit
+    li   a7, 10
+    ecall
+
+#******************************************
+# completare la funzione nel campo di sotto
+</pre>
+
+]]>
+    </text>
+    </questiontext>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <coderunnertype>riscv</coderunnertype>
+    <prototypetype>0</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>18</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload>contains:</answerpreload>
+    <globalextra><![CDATA[
+#*******************************************************************************
+# main()
+#*******************************************************************************
+_start:
+      # puts numbers on the saved registers
+      start_saved_registers_leaf
+
+      # call contains
+      la   a0, buffer
+      la   a1, low
+      la   a2, high
+      lbu  a1, 0(a1)
+      lbu  a2, 0(a2)
+      jal  ra, contains
+      printreg a0, __ra0
+
+      # check whether the saved registers are preserved
+      check_saved_registers
+
+
+]]>
+    </globalextra>
+    <useace></useace>
+    <resultcolumns></resultcolumns>
+    <template></template>
+    <iscombinatortemplate></iscombinatortemplate>
+    <allowmultiplestdins></allowmultiplestdins>
+    <answer><![CDATA[
+#*******************************************************************************
+# Contains
+#
+# a0 - str
+# a1 - low
+# a2 - high
+#*******************************************************************************
+contains:
+      lbu   t1, 0(a0)                # reads a char and move pointer
+      addi  a0, a0, 1
+
+      beqz  t1, contains_zero        # string is over without find char
+      blt   t1, a1, contains         # if not in range, continue
+      bgt   t1, a2, contains
+
+      li    a0, 1                    # found, return
+      ret 
+contains_zero:
+      li    a0, 0                    # not found, return
+      ret
+
+
+]]>
+    </answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language></language>
+    <acelang></acelang>
+    <sandbox></sandbox>
+    <grader></grader>
+    <cputimelimitsecs></cputimelimitsecs>
+    <memlimitmb></memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin></uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>0</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    buffer: .string  "test string"
+    low:    .byte  'A'
+    high:   .byte  'Z'
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 0</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    buffer: .string  "test string"
+    low:    .byte  'A'
+    high:   .byte  'Z'
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    buffer: .string  "tesT string"
+    low:    .byte  'A'
+    high:   .byte  'Z'
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 1</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    buffer: .string  "tesT string"
+    low:    .byte  'A'
+    high:   .byte  'Z'
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    buffer: .string  ""
+    low:    .byte  'A'
+    high:   .byte  'Z'
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 0</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    buffer: .string  ""
+    low:    .byte  'A'
+    high:   .byte  'Z'
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    buffer: .string  "-----0"
+    low:    .byte  '0'
+    high:   .byte  '9'
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 1</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    buffer: .string  "-----0"
+    low:    .byte  '0'
+    high:   .byte  '9'
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    buffer: .string  "0"
+    low:    .byte  '0'
+    high:   .byte  '9'
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 1</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    buffer: .string  "0"
+    low:    .byte  '0'
+    high:   .byte  '9'
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    buffer: .string  "A9A"
+    low:    .byte  '0'
+    high:   .byte  '9'
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 1</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    buffer: .string  "A9A"
+    low:    .byte  '0'
+    high:   .byte  '9'
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    buffer: .string  "A"
+    low:    .byte  '0'
+    high:   .byte  '9'
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 0</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    buffer: .string  "A"
+    low:    .byte  '0'
+    high:   .byte  '9'
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+    </testcases>
+  </question>
+</quiz>

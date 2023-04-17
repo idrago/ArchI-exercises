@@ -1,0 +1,46 @@
+---
+name: "mcd"
+preload: "mcd:"
+testcases:
+  - testcode: |
+      .section .data
+        num1: .dword 24
+        num2: .dword 30
+    expected: "a0: 6"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num1: .dword 1
+        num2: .dword 30
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num1: .dword 7
+        num2: .dword 17
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num1: .dword 50
+        num2: .dword 10
+    expected: "a0: 10"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num1: .dword 0
+        num2: .dword 0
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num1: .dword 30
+        num2: .dword 24
+    expected: "a0: 6"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num1: .dword 13
+        num2: .dword 13
+    expected: "a0: 13"
+    display: "SHOW"

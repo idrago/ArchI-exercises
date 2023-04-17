@@ -1,0 +1,49 @@
+<p>
+Scrivere una procedura RISC-V per il calcolo del massimo comune divisore di due numeri 
+interi positivi \(a\) e \(b\). A tale scopo, implementare l'algoritmo di Euclide come procedura \(MCD(a,b)\) 
+da richiamare nel main. L'algoritmo di Euclide in pseudo-codice è il seguente:
+</p>
+
+<pre>
+int MCD(int a, int b) {
+    while (a != b) { 
+        if (a > b)
+            a = a - b;
+        else
+            b = b - a;
+    }
+    return a;
+}
+</pre>
+
+Il valore di ritorno deve essere lasciato sul registro \(a0\).
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(MCD\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.data
+    num1: .dword 24
+    num2: .dword 30
+.text
+_start:
+    # call MCD
+    la    a0, num1
+    la    a1, num2
+    ld    a0, 0(a0)
+    ld    a1, 0(a1)     
+    jal   ra, mcd
+
+    #exit
+    li    a7, 10
+    ecall
+
+#****************************************************
+# completare la funzione MCD nel campo di sotto
+</pre>
+

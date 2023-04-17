@@ -1,0 +1,51 @@
+<p>
+Scrivere una procedura RISC-V \(strchridx(str, c)\) per restituire <b>l'indice</b> della prima occorrenza di \(c\) in \(str\).  
+\(strchridx(str, c)\) restituisce -1 se \(c\) non è presente in \(str\).
+</p>
+
+Il seguente codice in \(C\) realizza \(strchridx\) (convertilo in RISC-V):
+
+<pre>
+unsigned long strchridx(char *str, char c) {
+    unsigned long i = 0;
+    while (str[i] != '\0' and str[i] != 'c') { 
+        i++;
+    }
+    if (str[i] == '\0') { 
+        return -1;
+    } else { 
+        return i;
+    }
+}
+</pre>
+
+Il valore di ritorno deve essere lasciato sul registro \(a0\).
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(strchridx\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.data
+    str:  .string "my long string"
+    c:    .byte 'g'
+.text
+_start:
+    # call strchridx
+    la   a0, str
+    la   a1, c
+    lb   a1, 0(a1)
+    jal  ra, strchridx
+
+    #exit
+    li   a7, 10
+    ecall
+
+#****************************************************
+# completare la funzione strchr nel campo di sotto
+</pre>
+

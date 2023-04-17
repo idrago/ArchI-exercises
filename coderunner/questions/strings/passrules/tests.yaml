@@ -1,0 +1,49 @@
+---
+name: "passrules"
+preload: "passrules:"
+testcases:
+  - testcode: |
+      .section .data
+          buffer: .string  "BadPAss!"
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          buffer: .string  "BadPAss1"
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          buffer: .string  ""
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          buffer: .string  "badpass"
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          buffer: .string  "Aadpass0"
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          buffer: .string  "0badpasZ"
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          buffer: .string  "1"
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          buffer: .string  "ZA"
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          buffer: .string  "0A"
+    expected: "a0: 1"
+    display: "SHOW"

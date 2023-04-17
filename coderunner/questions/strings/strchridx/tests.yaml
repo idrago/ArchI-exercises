@@ -1,0 +1,35 @@
+---
+name: "strchridx"
+preload: "strchridx:"
+testcases:
+  - testcode: |
+      .section .data
+        str:  .string "my long string"
+        c:    .byte 'm'
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        str:  .string "my long string"
+        c:    .byte 'g'
+    expected: "a0: 6"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        str:  .string "my long string"
+        c:    .byte '1'
+    expected: "a0: -1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        str:  .string ""
+        c:    .byte 'y'
+    expected: "a0: -1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        str:  .string "my long"
+        c:    .byte 'g'
+    expected: "a0: 6"
+    display: "SHOW"
+

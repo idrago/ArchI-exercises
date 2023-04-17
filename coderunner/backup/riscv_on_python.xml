@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+<!-- question: 0  -->
+  <question type="category">
+    <category>
+      <text>$course$/top/Default</text>
+    </category>
+    <info format="moodle_auto_format">
+      <text></text>
+    </info>
+    <idnumber></idnumber>
+  </question>
+
+<!-- question: 134928  -->
+  <question type="coderunner">
+    <name>
+      <text>RISVC_on_Python</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p dir="ltr" style="text-align: left;">This is a template questions for running RISC-V code.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <coderunnertype>riscv</coderunnertype>
+    <prototypetype>2</prototypetype>
+    <allornothing>1</allornothing>
+    <penaltyregime>0</penaltyregime>
+    <precheck>0</precheck>
+    <hidecheck>0</hidecheck>
+    <showsource>0</showsource>
+    <answerboxlines>30</answerboxlines>
+    <answerboxcolumns>100</answerboxcolumns>
+    <answerpreload></answerpreload>
+    <globalextra></globalextra>
+    <useace>1</useace>
+    <resultcolumns></resultcolumns>
+    <template><![CDATA[import subprocess, sys
+
+supporting_code = ""
+with open("support.S", "r") as src:
+    supporting_code = src.read()
+
+# write the student code to a file prog.s
+student_answer = supporting_code + \
+"""\n
+{{ QUESTION.globalextra | e('py') }}\n
+{{ STUDENT_ANSWER | e('py') }}\n
+{{ TEST.extra | e('py') }}"""
+
+#print(student_answer)
+
+with open("prog.s", "w") as src:
+    print(student_answer, file=src)
+
+
+# compile it
+cflags = "-static -nostartfiles -nostdlib"
+return_code = subprocess.call("riscv64-linux-gnu-gcc {0} -o prog prog.s".format(cflags).split())
+if return_code != 0:
+    print("** Compilation failed. Testing aborted **", file=sys.stderr)
+
+# If compile succeeded, run the code. Since this is a per-test template,
+# stdin is already set up for the stdin text specified in the test case,
+# so we can run the compiled program directly.
+if return_code == 0:
+    try:
+        output = subprocess.check_output(["/opt/RISCV/bin/spike", "/usr/bin/pk", "prog"], universal_newlines=True)
+        print(output.replace("bbl loader\n", ""))
+    except subprocess.CalledProcessError as e:
+        if e.returncode > 0:
+            # Ignore non-zero positive return codes
+            if e.output:
+                print(e.output.replace("bbl loader\n", ""))
+        else:
+            # But negative return codes are signals - abort
+            if e.output:
+                print(e.output.replace("bbl loader\n", ""), file=sys.stderr)
+            if e.returncode < 0:
+                print("Task failed with signal", -e.returncode, file=sys.stderr)
+            print("** Further testing aborted **", file=sys.stderr)]]></template>
+    <iscombinatortemplate>0</iscombinatortemplate>
+    <allowmultiplestdins>0</allowmultiplestdins>
+    <answer></answer>
+    <validateonsave>1</validateonsave>
+    <testsplitterre></testsplitterre>
+    <language>python3</language>
+    <acelang>asm</acelang>
+    <sandbox></sandbox>
+    <grader>EqualityGrader</grader>
+    <cputimelimitsecs>5</cputimelimitsecs>
+    <memlimitmb>10</memlimitmb>
+    <sandboxparams></sandboxparams>
+    <templateparams></templateparams>
+    <hoisttemplateparams>1</hoisttemplateparams>
+    <templateparamslang>None</templateparamslang>
+    <templateparamsevalpertry>0</templateparamsevalpertry>
+    <templateparamsevald>{}</templateparamsevald>
+    <twigall>0</twigall>
+    <uiplugin>ace</uiplugin>
+    <uiparameters></uiparameters>
+    <attachments>0</attachments>
+    <attachmentsrequired>0</attachmentsrequired>
+    <maxfilesize>10240</maxfilesize>
+    <filenamesregex></filenamesregex>
+    <filenamesexplain></filenamesexplain>
+    <displayfeedback>1</displayfeedback>
+    <giveupallowed>0</giveupallowed>
+    <prototypeextra></prototypeextra>
+    <testcases>
+    <file name="support.S" path="/" encoding="base64"></file>
+    </testcases>
+  </question>
+
+</quiz>
