@@ -2,31 +2,29 @@
 <quiz>
   <question type="coderunner">
     <name>
-      <text>strlen</text>
+      <text>invert</text>
     </name>
     <questiontext format="html">
       <text><![CDATA[
 <p>
-Scrivere una procedura RISC-V per calcolare la lunghezza di una stringa di caratteri in C, 
-escluso il carattere terminatore. Le stringhe di caratteri in C sono memorizzate come un array di byte in memoria, 
-dove il byte '\0' (0x00) rappresenta la fine della stringa.
+Scrivere una procedura \(invert(array, size)\), che utilizzi \(swap\) (definita nell'esercizio precedente) per invertire un array in memoria.
 </p>
 
-Il seguente codice in \(C\) realizza \(strlen\) (convertilo in RISC-V):
-
+<br/>Il seguente codice in \(C\) realizza \(invert\) (convertilo in RISC-V):
 <pre>
-unsigned long strlen(char *str) {
-    unsigned long i;
-    for (i = 0; str[i] != '\0'; i++);
-    return i;
-}
+void invert(int[] array, int size) {
+    int i;
+    for (i = 0; i < size/2; i++) {
+        swap(array, i, size-i-1);
+    }
+}    
 </pre>
 
-Il valore di ritorno deve essere lasciato sul registro \(a0\).
 
 <br><b>Attenzione:</b>
 <ul>
-    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(strlen\) (in RISC-V)</li>
+    <li>NON INCOLLARE IL CODICE DI \(swap\) NELLA RISPOSTA</li>    
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(invert\) (in RISC-V)</li>
     <li>Attenzione alle convenzioni di chiamata!</li>
     <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
 </ul>
@@ -34,22 +32,24 @@ Il valore di ritorno deve essere lasciato sul registro \(a0\).
 <pre>
 .globl _start
 .data
-    str: .string  "My string"
+    size:  .word 8
+    array: .word 1,5,3,7,2,6,4,8
 .text
 _start:
-    # call strlen
-    la   a0, str
-    jal  ra, strlen
-
+    # chiama invert
+    la   a0, array
+    la   a1, size
+    lw   a1, 0(a1)        
+    jal  ra, invert
+    
     #exit
     li   a7, 10
     ecall
 
-#****************************************************
-# completare la funzione strlen nel campo di sotto
+#***************************************************
+# completare la funzione invert nel campo di sotto
 </pre>
-
-
+    
 ]]>
     </text>
     </questiontext>
@@ -65,23 +65,50 @@ _start:
     <showsource>0</showsource>
     <answerboxlines>18</answerboxlines>
     <answerboxcolumns>100</answerboxcolumns>
-    <answerpreload>strlen:</answerpreload>
+    <answerpreload>invert:</answerpreload>
     <globalextra><![CDATA[
 #*******************************************************************************
 # main()
 #*******************************************************************************
-_start:
-      # puts numbers on the saved registers
-      start_saved_registers_leaf
+_start:    
+    # puts numbers on the saved registers
+    start_saved_registers_nonleaf
 
-      # call strlen
-      la   a0, str
-      jal  ra, strlen
-      printreg a0, __ra0
+    # chiama invert
+    la   a0, array
+    la   a1, size
+    lw   a1, 0(a1)
+    jal  ra, invert
 
-      # check whether the saved registers are preserved
-      check_saved_registers
+    # print results
+    la   a0, array
+    la   a1, size
+    lw   a1, 0(a1)
+    jal __print_array
 
+    # check whether the saved registers are preserved
+    check_saved_registers
+
+################################################################################
+# Procedure swap(v, x, y)
+# a0  -> address of v
+# a1 -> index x
+# a2 -> index y
+# does not return anything
+################################################################################
+swap:
+      slli  a1, a1, 2     # calculates offset of x
+      slli  a2, a2, 2     # calculates offset of y
+      add   t0, a0, a1    # address of v[x]
+      add   t1, a0, a2    # address of v[y]
+
+      lw    t2, 0(t0)     # sway the values
+      lw    t3, 0(t1)
+      sw    t3, 0(t0)
+      sw    t2, 0(t1)
+      
+      exit_required_leaf_function
+      ret                 # return
 
 
 ]]>
@@ -92,21 +119,36 @@ _start:
     <iscombinatortemplate></iscombinatortemplate>
     <allowmultiplestdins></allowmultiplestdins>
     <answer><![CDATA[
-#*******************************************************************************
-# strlen 
-# a0 - str
-#*******************************************************************************
-strlen:
-      add  t0, zero, zero        # i = 0
-strlen_loop:
-      add  t1, t0, a0            # Add the byte offset for str[i]
-      lbu  t1, 0(t1)             # dereference str[i]
-      beq  t1, zero, strlen_end  # if str[i] == 0, break for loop
-      addi t0, t0, 1             # i++
-      j    strlen_loop           # loop
+################################################################################
+# Procedure invert(v)
+# a0 -> v address
+# a1 -> v size
+################################################################################
+invert:
+      addi  sp, sp, -32
+      sd    ra, 0(sp)
+      sd    a0, 8(sp)
+      sd    s1, 16(sp)
+      sd    s2, 24(sp)
 
-strlen_end:
-      addi a0, t0, 0             # Move t0 into a0 to return
+      addi  s1, zero, 0         # index of first element
+      addi  s2, a1, -1          # index of last element
+LOOP_invert:
+      blt   s2, s1, END_invert  # if s2 < s1 goto end
+
+      ld    a0, 8(sp)
+      add   a1, s1, zero
+      add   a2, s2, zero
+      jal   ra, swap
+      addi  s1, s1, 1
+      addi  s2, s2, -1
+      j     LOOP_invert
+END_invert:
+
+      ld    ra, 0(sp)           # restore the return address
+      ld    s1, 16(sp)
+      ld    s2, 24(sp)
+      addi  sp, sp, 32          # restore the stack pointer
       ret
 
 
@@ -143,7 +185,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "string"
+    size:  .word 8
+    array: .word 1,2,3,4,5,6,7,8
 
         ]]>
         </text>
@@ -152,12 +195,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 6</text>
+        <text>array = 8 7 6 5 4 3 2 1</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "string"
+    size:  .word 8
+    array: .word 1,2,3,4,5,6,7,8
 
         ]]></text>
     </extra>
@@ -169,7 +213,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "S"
+    size:  .word 2
+    array: .word 1,5
 
         ]]>
         </text>
@@ -178,12 +223,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 1</text>
+        <text>array = 5 1</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "S"
+    size:  .word 2
+    array: .word 1,5
 
         ]]></text>
     </extra>
@@ -195,7 +241,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  ""
+    size:  .word 8
+    array: .word 1,5,3,7,2,6,4,8
 
         ]]>
         </text>
@@ -204,12 +251,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 0</text>
+        <text>array = 8 4 6 2 7 3 5 1</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  ""
+    size:  .word 8
+    array: .word 1,5,3,7,2,6,4,8
 
         ]]></text>
     </extra>
@@ -221,7 +269,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "str"
+    size:  .word 5
+    array: .word 1,5,3,7,2
 
         ]]>
         </text>
@@ -230,12 +279,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 3</text>
+        <text>array = 2 7 3 5 1</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "str"
+    size:  .word 5
+    array: .word 1,5,3,7,2
 
         ]]></text>
     </extra>
@@ -247,7 +297,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "str str"
+    size:  .word 1
+    array: .word 5
 
         ]]>
         </text>
@@ -256,64 +307,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 7</text>
+        <text>array = 5</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "str str"
-
-        ]]></text>
-    </extra>
-    <display>
-        <text>SHOW</text>
-    </display>
-</testcase>
-<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
-    <testcode>
-        <text><![CDATA[
-.section .data
-    str: .string  " s"
-
-        ]]>
-        </text>
-    </testcode>
-    <stdin>
-        <text></text>
-    </stdin>
-    <expected>
-        <text>a0: 2</text>
-    </expected>
-    <extra>
-        <text><![CDATA[
-.section .data
-    str: .string  " s"
-
-        ]]></text>
-    </extra>
-    <display>
-        <text>SHOW</text>
-    </display>
-</testcase>
-<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
-    <testcode>
-        <text><![CDATA[
-.section .data
-    str: .string  "1234"
-
-        ]]>
-        </text>
-    </testcode>
-    <stdin>
-        <text></text>
-    </stdin>
-    <expected>
-        <text>a0: 4</text>
-    </expected>
-    <extra>
-        <text><![CDATA[
-.section .data
-    str: .string  "1234"
+    size:  .word 1
+    array: .word 5
 
         ]]></text>
     </extra>

@@ -1,0 +1,29 @@
+---
+name: "hash"
+preload: "hash:"
+testcases:
+  - testcode: |
+      .section .data
+          str: .string "Hello World!"
+    expected: "a0: -4851993680078561086"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str: .string "Prova"
+    expected: "a0: 210686645101"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str: .string ""
+    expected: "a0: 5381"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str: .string "Another"
+    expected: "a0: 229418227893078"
+    display: "SHOW"             
+  - testcode: |
+      .section .data
+          str: .string "V"
+    expected: "a0: 177659"
+    display: "SHOW" 

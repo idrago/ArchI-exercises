@@ -1,0 +1,46 @@
+<p>
+Scrivere una funzione RISC-V che verifichi se un array di N numeri in memoria (word contigue) contiene una sequenza ordinata di numeri interi (crescente). Verificare vuol dire: restituire 1 se la condizione è vera, 0 altrimenti.
+</p>
+
+<br/>Il seguente codice in \(C\) realizza \(issorted\) (convertilo in RISC-V):
+<pre>
+int issorted(int[] array, int size) {
+    for (int i = 0; i < size-1; i++) {
+        if (array[i] > array[i+1]) {
+            return 0;
+        }
+    }
+    return 1;
+} 
+</pre>
+
+Il valore di ritorno deve essere lasciato sul registro \(a0\).
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(issorted\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.data
+  size:  .word  10
+  array: .word  1,3,5,6,7,8,9,25,30,40
+
+.text
+_start:
+    # chiama issorted
+    la   a0, array
+    la   a1, size
+    lw   a1, 0(a1)
+    jal  ra, issorted
+    
+    #exit
+    li   a7, 10
+    ecall   
+
+#****************************************************
+# completare la funzione issorted nel campo di sotto    
+</pre>

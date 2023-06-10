@@ -8,8 +8,8 @@
 %% 
 %% This is a generated file.
 %% 
-%% Copyright 2016 by Anders O.F. Hendrickson (anders.o.f.hendrickson AT gmail.com)
-%% and 2019-2021 by Matthieu Guerquin-Kern (guerquin-kern AT crans.org).
+%% Copyright 2016 by Anders O.F. Hendrickson (anders.o.f.hendrickson AT gmail DOT com)
+%% and 2019-2021 by Matthieu Guerquin-Kern (guerquin-kern AT crans DOT org).
 %% 
 %% This work may be distributed and/or modified under the
 %% conditions of the LaTeX Project Public License, either version 1.3
@@ -21,7 +21,13 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}[1999/12/01]
 \ProvidesPackage{moodle}
-    [2021/02/07 v0.9 Moodle quiz XML generation]
+    [2023/01/28 v1.0 Moodle quiz XML generation]
+%% \begin{figure}[bp]
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \newif\ifmoodle@draftmode
 \newif\ifmoodle@handout
 \newif\ifmoodle@stampmode
@@ -31,18 +37,36 @@
 \newif\ifmoodle@section
 \newif\ifmoodle@subsection
 \newif\ifmoodle@numbered
+\newif\ifmoodle@international
+\newif\ifmoodle@feedbackLeft% contribution of Juergen Vollmer, 2021-03-05
+\newif\ifmoodle@samepage% contribution of Romano Giannetti, 2021-03-07
+\newif\ifmoodle@pluginfile%
+
+%% Moodle version
+\RequirePackage{xkeyval}%For key-handling
+\newcount\moodle@LMSmajor% major version number of the LMS targeted
+\newcount\moodle@LMSminor% minor version number of the LMS targeted
 
 %%DECLARATION OF OPTIONS
-\DeclareOption{draft}{\moodle@draftmodetrue}
-\DeclareOption{handout}{\moodle@handouttrue}
-\DeclareOption{final}{\moodle@draftmodefalse}
-\DeclareOption{nostamp}{\moodle@stampmodefalse}
-\DeclareOption{tikz}{\moodle@tikztrue}
-\DeclareOption{svg}{\moodle@svgtrue}
-\DeclareOption{section}{\moodle@sectiontrue\moodle@numberedtrue}
-\DeclareOption{section*}{\moodle@sectiontrue\moodle@numberedfalse}
-\DeclareOption{subsection}{\moodle@sectionfalse\moodle@numberedtrue}
-\DeclareOption{subsection*}{\moodle@sectionfalse\moodle@numberedfalse}
+\DeclareOptionX{draft}{\moodle@draftmodetrue}%
+\DeclareOptionX{handout}{\moodle@handouttrue}%
+\DeclareOptionX{final}{\moodle@draftmodefalse}%
+\DeclareOptionX{nostamp}{\moodle@stampmodefalse}%
+\DeclareOptionX{tikz}{\moodle@tikztrue}%
+\DeclareOptionX{svg}{\moodle@svgtrue}%
+\DeclareOptionX{section}{\moodle@sectiontrue\moodle@numberedtrue}%
+\DeclareOptionX{section*}{\moodle@sectiontrue\moodle@numberedfalse}%
+\DeclareOptionX{subsection}{\moodle@sectionfalse\moodle@numberedtrue}%
+\DeclareOptionX{subsection*}{\moodle@sectionfalse\moodle@numberedfalse}%
+\DeclareOptionX{feedbackleft}{\moodle@feedbackLefttrue}% contribution of Juergen Vollmer, 2021-03-05
+\DeclareOptionX{feedbackright}{\moodle@feedbackLeftfalse}% default
+\DeclareOptionX{samepage}{\moodle@samepagetrue}% contribution of Romano Giannetti, 2021-03-07
+\DeclareOptionX{LMS}[0.0]{%
+  \filename@parse{#1}%
+  \moodle@LMSmajor=\filename@base
+  \moodle@LMSminor=\filename@ext
+}%
+\DeclareOptionX{pluginfile}{\moodle@pluginfiletrue}%
 
 \moodle@draftmodefalse
 \moodle@handoutfalse
@@ -52,11 +76,22 @@
 \moodle@svgfalse
 \moodle@subsectiontrue
 \moodle@numberedfalse
+\moodle@feedbackLeftfalse% contribution of Juergen Vollmer, 2021-03-05
+\moodle@samepagefalse% contribution of Romano Giannetti, 2021-03-07
+\moodle@pluginfilefalse
 
-\ProcessOptions
+\ProcessOptionsX*% the star allows to inherit 'draft' and 'final' from the class
+
+\ifmoodle@samepage
+    \def\moodle@begin@samepage{\minipage[t]{\linewidth}}
+    \def\moodle@end@samepage{\endminipage\vskip 0pt plus 50pt\relax}
+\else
+    % defining to relax is safer versus adding spurious spaces
+    \def\moodle@begin@samepage{\relax}
+    \def\moodle@end@samepage{\relax}
+\fi
 
 \RequirePackage{environ} %To be able to take environment body as a macro argument
-\RequirePackage{xkeyval} %For key-handling
 \RequirePackage{amssymb} %For \checkmark symbol
 \@ifpackageloaded{iftex}{}{\RequirePackage{iftex}}
 \@ifundefined{ifeTeX}{% version of 'iftex' prior to November 2019.
@@ -68,11 +103,12 @@
   \fi
 }
 \RequirePackage{etoolbox}%List management
-\RequirePackage{xpatch}  %To patch commands easily in HTML mode
+\RequirePackage{xpatch}  %To patch commands easily in \HTML\ mode
 \RequirePackage{array}   %For formatting tables in the LaTeX mode of Clozes
 \RequirePackage{ifplatform} % To choose Ghostscript commands
 \@ifundefined{ifpdf}{\RequirePackage{ifpdf}}{}% old iftex would not define the conditional
 \RequirePackage{shellesc} %Luatex-compatible way of getting system access
+\RequirePackage{readprov} %To gather information on the package (version, date, ...)
 \RequirePackage{fancybox} %For fancy LaTeX tags
 \RequirePackage{getitems} %To gather the header and items
 \ifmoodle@handout
@@ -81,6 +117,10 @@
 \ifmoodle@svg
   \RequirePackage{graphicx} %To include graphics
 \fi
+
+\GetFileInfo{moodle.sty}%
+\edef\moodledate{\filedate}%
+\edef\moodleversion{\fileversion}%
 
 \let\xa=\expandafter
 \def\@star{*}%
@@ -92,12 +132,12 @@
 
 \@ifundefined{ifTUTeX}{
   \newif\ifTUTeX % a new conditional starts as false
-  \ifnum 0\ifXeTeX 1\fi\ifLuaTeX 1\fi>0%
+  \ifnum 0\ifXeTeX 1\fi\ifLuaTeX 1\fi>0\relax
     \TUTeXtrue
   \fi
 }{}%
 \newif\ifpdfoutput % a new conditional starts as false
-\ifnum 0\ifTUTeX 1\fi\ifPDFTeX\ifpdf 1\fi\fi>0%
+\ifnum 0\ifTUTeX 1\fi\ifPDFTeX\ifpdf 1\fi\fi>0\relax
    \pdfoutputtrue
 \fi
 \def\jobnamewithsuffixtomacro#1#2{%
@@ -139,7 +179,17 @@
     \fi
   \fi
   \ifmoodle@stampmode
-    \def\moodle@stamp{This file was generated on \the\year-\two@digits\month-\two@digits\day}
+    \def\moodle@stamp{This is a question bank made for Moodle }
+    \ifnum\the\moodle@LMSmajor\the\moodle@LMSminor=\z@\else
+      \g@addto@macro{\moodle@stamp}{\the\moodle@LMSmajor.\the\moodle@LMSminor.\space}
+    \fi
+    \writetomoodle{<!-- \moodle@stamp -->}%
+    \newcount\hour\hour=\time
+    \divide\hour by 60\relax
+    \newcount\minute\minute=\hour
+    \multiply\minute by -60\relax
+    \advance\minute by \time\relax
+    \def\moodle@stamp{It was generated on \the\year-\two@digits\month-\two@digits\day\space \the\hour:\the\minute}
     \ifPDFTeX % pdflatex or latex
       \ifpdf % pdflatex
         \g@addto@macro{\moodle@stamp}{ by pdfLaTeX }%
@@ -157,9 +207,9 @@
         \fi
       \fi
     \fi
-    \writetomoodle{<!-- \moodle@stamp -->}%
-    \def\moodle@stamp{running on \platformname}%
-    \g@addto@macro{\moodle@stamp}{ with the package moodle v0.9 }%
+    \writetomoodle{<!-- \moodle@stamp running -->}%
+    \def\moodle@stamp{on \platformname}%
+    \g@addto@macro{\moodle@stamp}{ with the package moodle \moodleversion\space (\moodledate) }%
     \writetomoodle{<!-- \moodle@stamp -->}%
   \fi
   \immediate\write\moodle@outfile{}%
@@ -170,17 +220,18 @@
   \writetomoodle{</quiz>}%
   \immediate\closeout\moodle@outfile
 }%
+\newcount\moodle@indentnum
 \def\calculateindent#1{%
   \bgroup
-    \count0=\number#1\relax
+    \moodle@indentnum=\number#1\relax
     \gdef\moodle@indent{}%
     \calculateindent@int
   \egroup
 }%
 \def\calculateindent@int{%
-  \ifnum\count0>0\relax
+  \ifnum\moodle@indentnum>0\relax
     \g@addto@macro{\moodle@indent}{\otherspace}%
-    \advance\count0 by -1\relax
+    \advance\moodle@indentnum by -1\relax
     \expandafter
     \calculateindent@int
   \fi
@@ -207,7 +258,8 @@
 }{}%
 }}%
 \newcommand*\@enumeratename{enumerate}%
-\newdimen\moodle@totalmarks \moodle@totalmarks=0pt%
+\newdimen\moodle@totalmarks
+\gdef\moodle@currentcategory{}%
 \newenvironment{quiz}[2][]{%
   \setkeys{moodle}{#1}%
   \gdef\setcategory##1{%
@@ -232,7 +284,7 @@
         \subsection*{##1}%
       \fi
     \fi
-    \begin{enumerate}%
+    \begin{enumerate}\renewcommand\labelenumi{(\theenumi)}%
   }%
   \gdef\setsubcategory##1{%
     \def\@noitemerr{}%\@latex@warning{Empty question list}
@@ -251,12 +303,13 @@
         \subsubsection*{##1}%
       \fi
     \fi
-    \begin{enumerate}%
+    \begin{enumerate}\renewcommand\labelenumi{(\theenumi)}%
   }%
   \setcategory{#2}%
+   \moodle@totalmarks=0pt%
 }{%
   \end{enumerate}%
-  %\emph{Total of marks: \strip@pt\moodle@totalmarks}%
+  \emph{\GetTranslation{Total of marks}: \strip@pt\moodle@totalmarks}%
   \let\setcategory\relax
   \let\setsubcategory\relax
 }%
@@ -266,11 +319,11 @@
   \xa\aftergroup\csname moodle@remember@\string#1\endcsname
 }
 \long\def\@moodle@ifgeneratexml#1#2{%
-  % If we are generating XML, do #1; otherwise do #2.
+  % If we are generating \XML, do #1; otherwise do #2.
   \tikzifexternalizing{%
-    % This run of LaTeX is currently ONLY generating a Tikz image
+    % This run of LaTeX is currently ONLY generating a TikZ image
     % to be saved in an external file.  We do NOT want to waste time
-    % generating XML, and moreover trying to do so would cause errors
+    % generating \XML, and moreover trying to do so would cause errors
     % because of file dependencies.
     #2%
   }{%
@@ -298,7 +351,7 @@
 
 \def\generate@moodle@write@html#1<#2>#3{%
   % #1 = NAME for \moodle@writeNAME
-  % #2 = HTML tag
+  % #2 = \HTML\ tag
   % #3 = what, exactly, to write
   \xa\gdef\csname moodle@write#1\endcsname{%
     \xa\def\xa\test@iii\xa{#3}%
@@ -308,28 +361,38 @@
       \xa\converttohtmlmacro\xa\moodle@htmltowrite\xa{#3}%
       \writetomoodle[2]{  <#2 format="html">}%
       \writetomoodle[4]{    <text><![CDATA[<p>\moodle@htmltowrite</p>]]></text>}%
+      \ifmoodle@pluginfile
+        \writetomoodle[0]{\htmlize@embeddedfiletags}%
+      \fi
       \writetomoodle[2]{  </#2>}%
     \fi
   }%
 }%
 
 \def\generate@moodle@write@html@noptag#1<#2>#3{%
-\xa\gdef\csname moodle@write#1\endcsname{%
-\xa\def\xa\test@iii\xa{#3}%
-\ifx\test@iii\@moodle@empty
-\writetomoodle[2]{  <#2 format="html"><text/></#2>}%
-\else
-\xa\converttohtmlmacro\xa\moodle@htmltowrite\xa{#3}%
-\writetomoodle[2]{  <#2 format="html">}%
-\writetomoodle[4]{    <text><![CDATA[\moodle@htmltowrite]]></text>}%
-\writetomoodle[2]{  </#2>}%
-\fi
-}%
+  % No <P>..</P> introduced
+  % #1 = NAME for \moodle@writeNAME
+  % #2 = \HTML\ tag
+  % #3 = what, exactly, to write
+  \xa\gdef\csname moodle@write#1\endcsname{%
+    \xa\def\xa\test@iii\xa{#3}%
+    \ifx\test@iii\@moodle@empty
+      \writetomoodle[2]{  <#2 format="html"><text/></#2>}%
+    \else
+      \xa\converttohtmlmacro\xa\moodle@htmltowrite\xa{#3}%
+      \writetomoodle[2]{  <#2 format="html">}%
+      \writetomoodle[4]{    <text><![CDATA[\moodle@htmltowrite]]></text>}%
+      \ifmoodle@pluginfile
+        \writetomoodle[0]{\htmlize@embeddedfiletags}%
+      \fi
+      \writetomoodle[2]{  </#2>}%
+    \fi
+  }%
 }%
 
 \def\generate@moodle@write@data*#1<#2>#3{%
   % #1 = NAME for \moodle@writeNAME
-  % #2 = HTML tag
+  % #2 = \HTML\ tag
   % #3 = what, exactly, to write
   \xa\gdef\csname moodle@write#1\endcsname{%
     \writetomoodle[2]{  <#2>#3</#2>}%
@@ -354,7 +417,7 @@
 \def\moodle@latex@writetags{%
   \xa\xdef\xa\test@iii\xa{\moodle@tags}%
   \ifx\test@iii\@moodle@empty\relax\else
-    \hfill tags: %
+    \hfill \GetTranslation{tags}: %
     \renewcommand*{\do}[1]{\ifmoodle@firsttag\moodle@firsttagfalse\else, \fi\texttt{##1}}%
     \xa\docsvlist\xa{\test@iii}%
   \fi
@@ -386,8 +449,8 @@
       % and feedback tailored to each right or wrong answer.
       % We shall use the key 'feedback' to record both kinds of feedback,
       % relying on TeX's grouping mechanism to keep them apart.
-      % When it comes time to write them to XML,
-      % \moodle@writegeneralfeedback uses the HTML tag <generalfeedback>
+      % When it comes time to write them to \XML,
+      % \moodle@writegeneralfeedback uses the \HTML\ tag <generalfeedback>
       % whereas \moodle@writefeedback uses the tag <feedback>.
       % Note that the general feedback is NOT inherited by each answer!
       \define@cmdkey{moodle}[moodle@]{feedback}[]{}%
@@ -401,7 +464,7 @@
       %Key calls like [default grade=7] set \moodle@defaultgrade.
       \define@cmdkey{moodle}[moodle@]{default grade}[1.0]{}%
       %Next, makes 'points' a synonym for 'default grade'
-      \define@key{moodle}{points}[1.0]{\xa\def\csname moodle@default grade\endcsname{#1}}
+      \define@key{moodle}{points}[1.0]{\xa\def\csname moodle@default grade\endcsname{#1}}%
       \generate@moodle@write@code*{defaultgrade}<defaultgrade>{\csname moodle@default grade\endcsname}%
       \moodleset{default grade=1.0} %This sets the default.
 
@@ -429,7 +492,7 @@
 %% FRACTION -- how much this answer is worth out of 100 percent
       \define@cmdkey{moodle}[moodle@]{fraction}[100]{}%
       %We do not create \moodle@writefraction, because the fraction occurs in
-      %the XML within the answer tag, like <answer fraction="75">.
+      %the \XML\ within the answer tag, like <answer fraction="75">.
       \moodleset{fraction=100} %This sets the default.
 %% FRACTIONTOL -- the tolerance for fractions with respect to valid values
       \define@cmdkey{moodle}[moodle@]{fractiontol}[0.1]{}%
@@ -450,6 +513,10 @@
 %% ALLORNOTHING -- for multichoice with multiple answers where all the points are given
       \define@boolkey{moodle}[moodle@]{allornothing}[true]{}%
       \moodleset{allornothing=false}%
+
+%% SANCTION -- how much shall incorrect choices by sanctioned in multichoice questions (single)
+      \define@cmdkey{moodle}[moodle@]{sanction}[]{}%
+      \moodleset{sanction=0} %This sets the default.
 
 %% TODO: CORRECTFEEDBACK
 %% TODO: PARTIALLYCORRECTFEEDBACK
@@ -497,6 +564,7 @@
       \def\@moodle@IIII{IIII}%
       \def\@moodle@none{none}%
       \def\moodle@obeynumberingstyle{%
+        \renewcommand\labelenumii{\theenumii.}% follow Moodle's labeling convention
         \ifx\moodle@numbering\@moodle@abc
           \renewcommand\theenumii{\alph{enumii}}%
         \fi
@@ -523,26 +591,26 @@
 
 %% DISPLAY MODE -- affects Cloze multiple choice questions only.
       % 0 = inline, 1 = vertical, 2 = horizontal
-      \def\moodle@multi@mode{0}%
+      \def\moodle@multi@mode{\ifmoodle@single 0\else 1\fi}%
       \define@key{moodle}{inline}[]{\def\moodle@multi@mode{0}}%
       \define@key{moodle}{vertical}[]{\def\moodle@multi@mode{1}}%
       \define@key{moodle}{horizontal}[]{\def\moodle@multi@mode{2}}%
 %% TOLERANCE
       \define@cmdkey{moodle}[moodle@]{tolerance}[0]{}%
       \moodleset{tolerance=0}%
-      %There is no \moodle@writetolerance, because in the XML the
+      %There is no \moodle@writetolerance, because in the \XML\ the
       %tolerance is given within the answer tag,
       %like <answer fraction=100 tolerance=0.03>.
 
 %% CASE SENSITIVE
-      \define@boolkey{moodle}[moodle@]{case sensitive}[true]{}%
-      \generate@moodle@write@code*{usecase}<usecase>{\csname ifmoodle@case sensitive\endcsname 1\else 0\fi}%
-      % We make 'usecase' a synonym for 'case sensitive'.
-      \define@boolkey{moodle}[moodle@]{usecase}[true]{\ifmoodle@usecase\csname moodle@case sensitivetrue\endcsname\else\csname moodle@case sensitivefalse\endcsname\fi}%
-      \moodleset{case sensitive=false}%
+      \define@boolkey{moodle}[moodle@]{usecase}[true]{}%
+      \generate@moodle@write@code*{usecase}<usecase>{\ifmoodle@usecase 1\else 0\fi}%
+      % We make 'case sensitive' a synonym for 'usecase'.
+      \define@boolkey{moodle}[moodle@]{case sensitive}[true]{\ifcsname moodle@case sensitive\endcsname \moodle@usecasetrue\else\moodle@usecasefalse\fi}%
+      \moodleset{usecase=false}%
 %% DRAG-AND-DROP FORMAT
       \define@boolkey{moodle}[moodle@]{draganddrop}[true]{}%
-      % We make 'dd' and 'dragdrop' and 'drag and drop' synonyms for 'draganddrop'.
+      % We make 'dd' and 'draganddrop' and 'drag and drop' synonyms for 'draganddrop'.
       \define@boolkey{moodle}[moodle@]{dd}[true]{\ifmoodle@dd\moodle@draganddroptrue\else\moodle@draganddropfalse\fi}%
       \define@boolkey{moodle}[moodle@]{drag and drop}[true]{\moodle@ddsynonym}%
       \def\moodle@ddsynonym{%
@@ -565,11 +633,11 @@
                        {html,html+file,text,monospaced,file}[html]%
                        {\def\test@i{#1}%
                         \ifx\test@i\@moodle@html
-                          % HTML Editor
+                          % \HTML\ Editor
                           \def\moodle@responseformat{editor}%
                         \fi
                         \ifx\test@i\@moodle@htmlfile
-                          % HTML Editor with File Picker
+                          % \HTML\ Editor with File Picker
                           \def\moodle@responseformat{editorfilepicker}%
                         \fi
                         \ifx\test@i\@moodle@text
@@ -657,8 +725,8 @@
 
 \newcommand\addto@xml[3][0]{%
   % #1 = spaces to indent (default=0)
-  % #2 = macro containing XML code (possibly empty)
-  % #3 = XML text to be appended to that macro (will be \edef'd)
+  % #2 = macro containing \XML\ code (possibly empty)
+  % #3 = \XML\ text to be appended to that macro (will be \edef'd)
   \calculateindent{#1}%
   \edef\xml@to@add{\moodle@indent\trim@pre@space{#3}}%
   \ifx#2\@moodle@empty
@@ -673,27 +741,33 @@
 %% CALCULATED %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-
+\ifmoodle@feedbackLeft% contribution of Juergen Vollmer, 2021-03-05
+  \newcommand{\moodle@preFeedback}{\\}%
+\else%
+  \newcommand{\moodle@preFeedback}{\hfill}%
+\fi
 
 \def\moodle@makelatextagbox#1{%
-    %\Ovalbox{\tiny #1}
+    \Ovalbox{\tiny #1}
     %\ovalbox{\tiny #1}
     %\shadowbox{\tiny #1}
 }%
 
 \def\moodle@makelatextag@qtype#1{%
-  %\doublebox{\tiny \textsc{#1}}
+  \doublebox{\tiny \textsc{\GetTranslation{#1}}}
 }%
 
 \def\moodle@makelatextag@value#1#2{%
-  \moodle@makelatextagbox{\csname moodle@#1\endcsname~#2}
+  \moodle@makelatextagbox{\GetTranslation{#2}~\csname moodle@#1\endcsname}%
 }%
 
 \def\moodle@makelatextag@key#1{%
-  \moodle@makelatextagbox{\csname moodle@#1\endcsname}
+  \moodle@makelatextagbox{\GetTranslation{#1}}
 }%
 
-\def\moodle@marks#1{point\ifdim#1pt=1pt \else s\fi}
+\def\moodle@makelatextag@other#1{%
+  \moodle@makelatextagbox{\GetTranslation{#1}}
+}%
 
 \def\moodle@makefrontend#1#2{%
   \NewEnviron{#1}[2][]{%
@@ -703,22 +777,23 @@
       \expandafter\gatheritems\xa{\BODY}%
       \let\moodle@questionheader=\gatheredheader
       %First, the LaTeX processing
-      \item \textbf{\moodle@questionname}
+      \item \moodle@begin@samepage \textbf{\moodle@questionname}
       \ifmoodle@handout
         \moodle@makelatextag@qtype{#1}
       \else
         \moodle@latex@writetags
         \par
         \noindent
-        \moodle@makelatextag@qtype{#1}
-        \moodle@makelatextag@value{default grade}{\moodle@marks{\csname moodle@default grade\endcsname}}
-        \moodle@makelatextag@value{penalty}{penalty}
+        \moodle@makelatextag@qtype{#1}%
+        \moodle@makelatextag@value{default grade}{marked out of}
+        \moodle@makelatextag@value{penalty}{penalty}%
       \fi
       #2\par
       \noindent
       \moodle@questionheader
       \edef\moodle@generalfeedback{\expandonce\moodle@feedback}
       \csname moodle@#1@latexprocessing\endcsname
+      \moodle@end@samepage
       %Now, writing information to XML
       \@moodle@ifgeneratexml{%
         \xa\questiontext\xa{\moodle@questionheader}% Save the question text.
@@ -736,10 +811,9 @@
     \egroup
   }%
 }
-\AfterEndPreamble{% in case something like \usepackage[french]{babel} is loaded
+\AtBeginEnvironment{quiz}{% protect existing description outside of quiz
   \let\description\relax% remove the meaning of existing \description and \enddescription
   \let\enddescription\relax
-
   \NewEnviron{description}[2][]{%
     \bgroup
       \setkeys{moodle}{#1,questionname={#2}}%
@@ -747,7 +821,7 @@
       \trim@spaces@in\moodle@questiontext
       \ifx\moodle@questiontext\@empty\relax\else%
         %First, the LaTeX processing.
-        \item \textbf{\moodle@questionname}
+        \item \moodle@begin@samepage\textbf{\moodle@questionname}
         \ifmoodle@handout\else
           \moodle@latex@writetags
           \par
@@ -758,9 +832,10 @@
         \moodle@questiontext\par
         \ifmoodle@handout\else
           \ifx\moodle@feedback\@empty\relax\else
-            \fbox{\parbox{\linewidth}{\emph{\moodle@feedback}}}%
+            \fbox{\parbox{.96\linewidth}{\emph{\moodle@feedback}}}%
           \fi
         \fi
+        \moodle@end@samepage
         %Now, writing information to memory.
         \@moodle@ifgeneratexml{%
           \writetomoodle{<question type="description">}%
@@ -775,26 +850,26 @@
 \def\moodle@essay@latexprocessing{%
   % Moodle cannot automatically grade an essay,
   % but if the user puts \item's in, we can list them in an itemize as notes.
-  \par\noindent \emph{Notes for grader:}
+  \par\noindent \emph{\GetTranslation{Information for graders}:}
   \ifnum\c@numgathereditems>0\relax
     \begin{itemize} \setlength\itemsep{0pt}\setlength\parskip{0pt}%
       \loopthroughitemswithcommand{\moodle@print@essay@answer}%
     \end{itemize}%
   \fi
   \ifx\moodle@generalfeedback\@empty\relax\else%
-    \fbox{\parbox{\linewidth}{\emph{\moodle@generalfeedback}}}%
+    \fbox{\parbox{.96\linewidth}{\emph{\moodle@generalfeedback}}}%
   \fi
 }
 
 \NewEnviron{essay}[2][]{%
   \bgroup
     \setkeys{moodle}{#1,questionname={#2}}%
-    \global\advance\moodle@totalmarks by \csname moodle@default grade\endcsname pt
+    \global\advance\moodle@totalmarks by \csname moodle@default grade\endcsname pt%
     \moodle@checkresponsefieldlines
     \expandafter\gatheritems\expandafter{\BODY}%
     \let\moodle@questionheader=\gatheredheader
     %First, the LaTeX processing.
-      \item \textbf{\moodle@questionname}
+      \item \moodle@begin@samepage\textbf{\moodle@questionname}
       \ifmoodle@handout
         \moodle@makelatextag@qtype{essay}
       \else
@@ -802,22 +877,26 @@
         \par
         \noindent
         \moodle@makelatextag@qtype{essay}
-        \moodle@makelatextag@value{default grade}{\moodle@marks{\csname moodle@default grade\endcsname}}
+        \moodle@makelatextag@value{default grade}{marked out of}
         \moodle@makelatextag@value{penalty}{penalty}
-        \moodle@makelatextag@key{responseformat}
+        \xa\moodle@makelatextag@key\xa{\moodle@responseformat}
       \fi
       \par
       \noindent
       \moodle@questionheader
       \long\def\@lempty{}%
       \ifx\moodle@responsetemplate\@lempty\else
-        \par\noindent \emph{Template:}
-        \par\fbox{\parbox{\linewidth}{\moodle@responsetemplate}}\par
+        \par\noindent\emph{\GetTranslation{Response template}:}
+        \par\noindent\fbox{\parbox{.96\linewidth}{\moodle@responsetemplate}}\par
       \fi
       \edef\moodle@generalfeedback{\expandonce\moodle@feedback}
-      \ifmoodle@handout\else
+      \ifmoodle@handout
+        \par\noindent
+        \fbox{\parbox[t][\csname moodle@response field lines\endcsname\baselineskip]{.96\linewidth}{\phantom{Moodle}}}%
+      \else
         \csname moodle@essay@latexprocessing\endcsname
       \fi
+      \moodle@end@samepage
     %Now, writing information to memory.
     \@moodle@ifgeneratexml{%
       \xa\questiontext\xa{\moodle@questionheader}% Save the question text.
@@ -841,7 +920,7 @@
         %
         \passvalueaftergroup{\moodle@answers@xml}%
       \egroup
-      \moodle@writeanswers% The 'answers' XML really contains the grader info.
+      \moodle@writeanswers% The 'answers' \XML\ really contains the grader info.
       \moodle@writeresponsetemplate%
       \moodle@writetags%
       \writetomoodle{</question>}%
@@ -852,18 +931,18 @@
 \def\moodle@checkresponsefieldlines{%
   \newcount\a\a=\number\csname moodle@response field lines\endcsname
   \newcount\b\b=5%
-  \ifnum\the\a>40% if the value was more than 40
+  \ifnum\the\a>40\relax% if the value was more than 40
     \a=40%
   \fi
-  \ifnum\the\a<5% if the value was less than 5
+  \ifnum\the\a<5\relax% if the value was less than 5
     \a=5%
   \fi
   \divide\a by\b% integer division by 5
   \multiply\a by\b% multiply by 5
-  \ifnum\a=\csname moodle@response field lines\endcsname% equality holds if we had 5, 10, 15, 20, 25, 30, or 40
+  \ifnum\a=\csname moodle@response field lines\endcsname\relax% equality holds if we had 5, 10, 15, 20, 25, 30, or 40
   \else
-    \ifnum\csname moodle@response field lines\endcsname>5%
-      \ifnum\csname moodle@response field lines\endcsname<40%
+    \ifnum\csname moodle@response field lines\endcsname>5\relax%
+      \ifnum\csname moodle@response field lines\endcsname<40\relax%
         \advance\a by\b% approximate with the next multiple of 5
       \fi
     \fi
@@ -923,17 +1002,6 @@
 }%
 
 \long\def\moodle@savegraderinfo#1{%
-  %\def\ds{#1}\show\ds
-  \bgroup
-    \moodle@savegraderinfo@int#1\moodle@answer@rdelim
-    \passvalueaftergroup{\moodle@answers@xml}%
-  \egroup
-}%
-\newcommand\moodle@savegraderinfo@int[1][]{%
-  \setkeys{moodle}{fraction=0,#1}%
-  \moodle@savegraderinfo@int@int%
-}%
-\long\def\moodle@savegraderinfo@int@int#1\moodle@answer@rdelim{%
   \def\moodle@answertext{#1}
   \xa\converttohtmlmacro\xa\moodle@answertext@html\xa{\moodle@answertext}%
   %\trim@spaces@in\moodle@answertext
@@ -943,17 +1011,15 @@
     \addto@xml[4]{\moodle@answers@xml}{\moodle@answertext@html}%
   \fi
 }%
-\def\blank{\rule{1in}{0.5pt}}%
-
 
 \moodle@makefrontend{shortanswer}{\moodle@makelatextag@shortanswer}%
 
 
 \def\moodle@makelatextag@shortanswer{%
-  \csname ifmoodle@case sensitive\endcsname
-    \moodle@makelatextagbox{Case-Sensitive}\relax
+  \ifmoodle@usecase
+    \moodle@makelatextag@other{Case-Sensitive}\relax
   \else
-    \moodle@makelatextagbox{Case-Insensitive}\relax
+    \moodle@makelatextag@other{Case-Insensitive}\relax
   \fi
 }
 
@@ -965,7 +1031,7 @@
       \loopthroughitemswithcommand{\moodle@print@shortanswer@answer}%
     \end{itemize}%
     \ifx\moodle@generalfeedback\@empty\relax\else%
-      \fbox{\parbox{\linewidth}{\emph{\moodle@generalfeedback}}}%
+      \fbox{\parbox{.96\linewidth}{\emph{\moodle@generalfeedback}}}%
     \fi
   }
 \fi
@@ -986,7 +1052,7 @@
        \item #1$~(\moodle@fraction\%)$%
      \fi
      \ifx\moodle@feedback\@empty\relax\else
-       \hfill \emph{$\rightarrow$ \moodle@feedback}
+       \moodle@preFeedback \emph{$\rightarrow$ \moodle@feedback}
      \fi
    }%
 
@@ -1007,10 +1073,13 @@
      \addto@xml[2]{\moodle@answers@xml}{<answer fraction="\moodle@fraction" format="plain_text">}%
      \xa\converttohtmlmacro\xa\moodle@answertext@html\xa{\moodle@answertext}%
      \addto@xml[4]{\moodle@answers@xml}{  <text>\moodle@answertext@html</text>}%
+     \ifmoodle@pluginfile
+       \writetomoodle[0]{\htmlize@embeddedfiletags}%
+     \fi
      \ifx\moodle@feedback\@empty\relax\else
        \trim@spaces@in\moodle@feedback
        \xa\converttohtmlmacro\xa\moodle@feedback@html\xa{\moodle@feedback}%
-       \addto@xml[4]{\moodle@answers@xml}{  <feedback format="html"><text><![CDATA[<p>\moodle@feedback@html</p>]]></text></feedback>}%
+       \addto@xml[4]{\moodle@answers@xml}{  <feedback format="html"><text><![CDATA[<p>\moodle@feedback@html</p>]]></text>\ifmoodle@pluginfile\htmlize@embeddedfiletags\fi</feedback>}%
      \fi
      \addto@xml[2]{\moodle@answers@xml}{</answer>}%
    }%
@@ -1026,7 +1095,8 @@
 \def\moodle@makelatextag@numerical{}
 
 \AtEndPreamble{
-  \@ifpackageloaded{siunitx}{\def\moodle@printnum{\num[omit-uncertainty,copy-decimal-marker]}}{\let\moodle@printnum\trim@spaces}%
+  \@ifpackageloaded{siunitx}{\def\moodle@printnum{\num[omit-uncertainty]}}%,copy-decimal-marker
+  {\let\moodle@printnum\trim@spaces}%
 }
 
 \ifmoodle@handout
@@ -1037,7 +1107,7 @@
       \loopthroughitemswithcommand{\moodle@print@numerical@answer}%
     \end{itemize}%
     \ifx\moodle@generalfeedback\@empty\relax\else%
-      \fbox{\parbox{\linewidth}{\emph{\moodle@generalfeedback}}}%
+      \fbox{\parbox{.96\linewidth}{\emph{\moodle@generalfeedback}}}%
     \fi
   }
 \fi
@@ -1053,13 +1123,14 @@
      \moodle@print@numerical@answer@int@int%
    }%
    \def\moodle@print@numerical@answer@int@int#1\@rdelim{%
-     \xdef\test@i{\trim@spaces{#1}}%
+     \gdef\test@i{#1}%
+     \trim@spaces@in\test@i
      \ifx\test@i\@star
        \item \test@i
      \else
        \item \moodle@printnum{#1}%
-       \ifnum\z@=\moodle@tolerance\else
-         $\,\pm\,$\moodle@printnum{\moodle@tolerance}%
+       \ifx\moodle@tolerance\moodle@zero\else
+         $\,\pm\,$\moodle@printnum{\expandonce\moodle@tolerance}%
        \fi
      \fi
      \ifx\moodle@fraction\@hundred
@@ -1069,7 +1140,7 @@
        $~(\moodle@fraction\%)$%
      \fi
      \ifx\moodle@feedback\@empty\relax\else
-       \hfill \emph{$\rightarrow$ \moodle@feedback}%
+       \moodle@preFeedback \emph{$\rightarrow$ \moodle@feedback}%
      \fi
    }%
 
@@ -1089,13 +1160,17 @@
      \moodle@checkfraction
      \addto@xml[2]{\moodle@answers@xml}{<answer fraction="\moodle@fraction" format="plain_text">}%
      \addto@xml[4]{\moodle@answers@xml}{  <text>\moodle@answertext</text>}%
+
      \ifx\moodle@answertext\@star\else
        \addto@xml[4]{\moodle@answers@xml}{  <tolerance>\moodle@tolerance</tolerance>}%
+     \fi
+     \ifmoodle@pluginfile
+       \writetomoodle[0]{\htmlize@embeddedfiletags}%
      \fi
      \ifx\moodle@feedback\@empty\relax\else
        \trim@spaces@in\moodle@feedback
        \xa\converttohtmlmacro\xa\moodle@feedback@html\xa{\moodle@feedback}%
-       \addto@xml[4]{\moodle@answers@xml}{  <feedback format="html"><text><![CDATA[<p>\moodle@feedback@html</p>]]></text></feedback>}%
+       \addto@xml[4]{\moodle@answers@xml}{  <feedback format="html"><text><![CDATA[<p>\moodle@feedback@html</p>]]></text>\ifmoodle@pluginfile\htmlize@embeddedfiletags\fi</feedback>}%
      \fi
      \addto@xml[2]{\moodle@answers@xml}{</answer>}%
    }%
@@ -1114,27 +1189,25 @@
       \PackageError{moodle}{Unsupported option "allornothing" for a multichoice subquestion}
       {Please set "allornothing=false"}%
     \else
-      \moodle@makelatextagbox{All-or-nothing}%
+      \moodle@makelatextag@other{All-or-nothing}%
     \fi
   \else
-    \ifmoodle@multiple
-      \moodle@makelatextagbox{Multiple}%
+    \ifmoodle@single
+      \moodle@makelatextag@other{Single}%
     \else
-      \moodle@makelatextagbox{Single}%
+      \moodle@makelatextag@other{Multiple}%
     \fi
   \fi
   \ifmoodle@handout\else
     \ifmoodle@shuffle
-      \moodle@makelatextagbox{Shuffle}\relax%
+      \moodle@makelatextag@other{Shuffle}\relax%
     \fi
   \fi
 }
 
 \def\moodle@multi@latexprocessing{%
-  \ifmoodle@allornothing
-    \moodle@singletrue
-  \fi
-  \moodle@countcorrectanswers%
+  \ifmoodle@allornothing\moodle@singletrue\fi
+  \ifmoodle@single\relax\else\moodle@InspectMultipleAnswers\fi
   \ifmoodle@handout\NewList{answerlist}\fi
   \begin{enumerate}\moodle@obeynumberingstyle%
     %\renewcommand{\theenumi}{\alph{enumi}}%
@@ -1151,7 +1224,7 @@
   \end{enumerate}%
   \ifmoodle@handout\else
     \ifx\moodle@generalfeedback\@empty\relax\else%
-      \fbox{\parbox{\linewidth}{\emph{\moodle@generalfeedback}}}%
+      \fbox{\parbox{.96\linewidth}{\emph{\moodle@generalfeedback}}}%
     \fi
   \fi
 }
@@ -1173,7 +1246,7 @@
       \ifmoodle@single%
         \setkeys{moodle}{fraction=100}%
       \else
-        \setkeys{moodle}{fraction=\moodle@autopoints}%
+        \setkeys{moodle}{fraction=\moodle@AutoScore}%
       \fi
     \else
       \g@addto@macro\moodle@answertext{#1#2}%
@@ -1183,7 +1256,11 @@
     \ifmoodle@handout\else
       \ifmoodle@single%
         \ifx\moodle@fraction\@empty\relax%
-          \setkeys{moodle}{fraction=0}%
+          \ifdim0pt<\moodle@sanction pt\relax
+            \setkeys{moodle}{fraction=-\moodle@sanction}%
+          \else
+            \setkeys{moodle}{fraction=0}%
+          \fi
         \fi
         \moodle@checkfraction
         \ifx\moodle@fraction\@hundred%
@@ -1196,7 +1273,11 @@
         \fi
       \else% multiple
         \ifx\moodle@fraction\@empty\relax%
-          \setkeys{moodle}{fraction=\moodle@autosanctions}%
+          \ifmoodle@AdvancedScoreMode
+            \setkeys{moodle}{fraction=0}%
+          \else
+            \setkeys{moodle}{fraction=-\moodle@AutoScore}%
+          \fi
         \fi
         \moodle@checkfraction
         \g@addto@macro\moodle@answertext{$~(\moodle@fraction\%)$}%
@@ -1207,141 +1288,140 @@
       \xa\temp\xa{\moodle@answertext}%
     \else
       \ifx\moodle@feedback\@empty\relax\else%
-        \g@addto@macro\moodle@answertext{\hfill \emph{$\rightarrow$ \moodle@feedback}}%
+        \g@addto@macro\moodle@answertext{\moodle@preFeedback \emph{$\rightarrow$ \moodle@feedback}}%
       \fi
       \moodle@answertext
     \fi
   }%
 
-   \newcounter{moodle@numcorrectanswers}% count the stars
-   \newcounter{moodle@numincorrectanswers}% count the items without fraction key indicated
-   \newlength{\moodle@pointspercorrect}%
-   \newlength{\moodle@pointsperincorrect}%
-   \newlength{\moodle@sumofpositivefractions}% sums user-set positive fractions
-   \newlength{\moodle@sumofnegativefractions}% sums user-set negative fractions
-   \def\moodle@countcorrectanswers{%
-     \setcounter{moodle@numcorrectanswers}{0}%
-     \setcounter{moodle@numincorrectanswers}{0}%
-     \global\setlength{\moodle@pointspercorrect}{100pt}%
-     \global\setlength{\moodle@pointsperincorrect}{-100pt}%
-     \global\setlength{\moodle@sumofpositivefractions}{0pt}%
-     \global\setlength{\moodle@sumofnegativefractions}{0pt}%
-     \loopthroughitemswithcommand{\moodle@countcorrectanswers@a}%
-     \global\advance\moodle@pointspercorrect by-\moodle@sumofpositivefractions\relax%
-     \def\ds{\strip@pt\moodle@sumofpositivefractions}%
-     \ifnum0=\c@moodle@numcorrectanswers\relax%
-       % autopoints will never be used but we check if the sum of positive fractions is 100%
-       \ifdim\moodle@pointspercorrect<-\moodle@fractiontol pt\relax%
-         \PackageWarning{moodle}{Positive fractions sum up to more than 100 (here: \ds)}%
-       \else
-         \ifdim\moodle@pointspercorrect>\moodle@fractiontol pt\relax%
-           \PackageError{moodle}{Positive fractions sum up to less than 100 (here: \ds)}%
-         \fi
-       \fi
-     \else
-       \ifdim0pt<\moodle@pointspercorrect\relax\else%
-         % we have starred items so the sum of user-set positive fractions must be less than 100%
-         % otherwise, starred items would lead to penalties
-         \PackageError{moodle}{Positive fractions sum up to 100 or more (here: \ds):
-                                there is no positive points left to be given to starred items.}%
-       \fi
-       \global\divide\moodle@pointspercorrect by \c@moodle@numcorrectanswers\relax%
-     \fi
-     \gdef\moodle@autopoints{\strip@pt\moodle@pointspercorrect}%
-     \global\advance\moodle@pointsperincorrect by-\moodle@sumofnegativefractions\relax%
-     \def\ds{\strip@pt\moodle@sumofnegativefractions}%
-     \ifnum0=\c@moodle@numincorrectanswers\relax%
-       % autosanctions will never be used and
-       % we do not care about the sum of negative fractions (might be less than -100)
-     \else
-       \ifdim0pt<\moodle@pointsperincorrect\relax%
-         % we have items without fractions set: to prevent auto sanctions from becoming bonuses,
-         % such items are neutralized.
-         \PackageWarning{moodle}{Negative fractions sum up to -100 or less (here: \ds):
-                                  items with no fraction key set will be considered as neutral.}%
-         \global\setlength{\moodle@pointsperincorrect}{0pt}%
-       \fi
-       \global\divide\moodle@pointsperincorrect by \c@moodle@numincorrectanswers\relax%
-     \fi
-     \gdef\moodle@autosanctions{\strip@pt\moodle@pointsperincorrect}%
-   }
-   \long\def\moodle@countcorrectanswers@a#1{%
-     %The grouping is to keep key answer-specific key changes local.
-     \bgroup
-       \moodle@countcorrectanswers@b#1\moodle@answer@rdelim
-     \egroup
-   }%
-   \newcommand\moodle@countcorrectanswers@b[1][]{%
-     %\ifx&#1&%
-       \let\moodle@fraction\@empty%
-       \setkeys{moodle}{#1}%
-       \moodle@countcorrectanswers@c%
-     %\fi
-   }%
-   \long\def\moodle@countcorrectanswers@c#1#2\moodle@answer@rdelim{%
-     \def\test@i{#1}%
-     \ifx\test@i\@star
-       \stepcounter{moodle@numcorrectanswers}%
-     \else
-       \ifx\moodle@fraction\@empty\relax%
-         \stepcounter{moodle@numincorrectanswers}%
-       \else
-         \ifdim0pt<\moodle@fraction pt\relax%
-           \global\addtolength{\moodle@sumofpositivefractions}{\moodle@fraction pt}%
-         \else
-           \global\addtolength{\moodle@sumofnegativefractions}{\moodle@fraction pt}%
-         \fi
-       \fi
-     \fi
-   }%
-   \newlength{\test@fraction}%
-   \newlength{\test@lower}%
-   \newlength{\test@upper}%
-   \def\moodle@fractionerror{%
-     \def\ds{\moodle@fraction}%
-     \PackageError{moodle}{the current fraction is not a valid value (here: \ds)}%
-   }
-   {\catcode`|=3\relax
-   \gdef\moodle@validfractionlist{0|5|10|11.11111|12.5|14.28571|16.66667|20|25|30|33.33333|40|50|60|66.66667|70|75|80|83.33333|90|100}}%
-   \def\moodle@isfractionnear#1{%
-     \setlength{\test@lower}{#1 pt}%
-     \addtolength{\test@lower}{-\moodle@fractiontol pt}%
-     \setlength{\test@upper}{#1 pt}%
-     \addtolength{\test@upper}{\moodle@fractiontol pt}%
-     \ifdim\test@upper>\test@fraction\relax
-       \ifdim\test@lower<\test@fraction\relax
-         \gdef\test@fractionmatched{#1}%
-       \fi
-     \fi
-   }
- \def\moodle@checkfraction{%
-   \ifmoodle@allornothing
-     \ifnum\moodle@fraction>0%
-       \setkeys{moodle}{fraction=100}%
-     \fi
-     \ifnum\moodle@fraction<0%
-       \setkeys{moodle}{fraction=0}%
-     \fi
-   \else
-     %\def\test@i{#1}%
-     \setlength{\test@fraction}{\moodle@fraction pt}%
-     % take the absolute value
-     \ifdim0pt>\test@fraction\relax%
-       \setlength{\test@fraction}{-\moodle@fraction pt}%
-     \fi
-     % test if the fraction is an admissible value
-     \let\test@fractionmatched\@empty
-     \forlistloop{\moodle@isfractionnear}{\moodle@validfractionlist}%
-     \ifx\test@fractionmatched\@empty\relax
-       \moodle@fractionerror%
-     \fi
-     \ifdim\moodle@fraction pt<-\moodle@fractiontol pt\relax%
-       \setkeys{moodle}{fraction=-\test@fractionmatched}%
-     \else
-       \setkeys{moodle}{fraction=\test@fractionmatched}%
-     \fi
-   \fi
- }
+\newcounter{moodle@NumStarredAnswers}% count the stars
+\newdimen\moodle@autoscore@tmp%
+\newdimen\moodle@TotalPositiveFractions% Total of user-set positive fractions
+\newdimen\moodle@PositiveScoreFactor% scaling factor to impose the fractions of
+\newif\ifmoodle@AdvancedScoreMode%
+
+\def\moodle@InspectMultipleAnswers{%
+  \setcounter{moodle@NumStarredAnswers}{0}%
+  \moodle@autoscore@tmp=100pt\relax% temporary variable
+  \moodle@TotalPositiveFractions=0pt\relax%
+  \moodle@PositiveScoreFactor=1pt\relax
+  \moodle@AdvancedScoreModefalse
+  \loopthroughitemswithcommand{\moodle@InspectMultipleAnswers@a}%
+  \ifmoodle@AdvancedScoreMode% advanced mode
+    \ifx\endmulti\endclozemulti% inside cloze
+      \divide\moodle@TotalPositiveFractions by 100\relax
+      \advance\moodle@TotalPositiveFractions by \c@moodle@NumStarredAnswers pt\relax
+      \moodle@PositiveScoreFactor=1 pt\relax
+      \moodle@PositiveScoreFactor=\dimexpr 1 pt * \moodle@PositiveScoreFactor / \moodle@TotalPositiveFractions\relax%
+      \global\def\moodle@OtherScore{% for multianswer questions in cloze, with advanced mode
+        \ifdim0pt<\moodle@fraction pt\relax
+          \moodle@fraction
+        \else
+          \moodle@autoscore@tmp=\moodle@PositiveScoreFactor\relax%
+          \multiply\moodle@autoscore@tmp by \moodle@fraction\relax%
+          \strip@pt\moodle@autoscore@tmp
+        \fi
+      }%
+    \else% outside cloze
+      \advance\moodle@autoscore@tmp by-\moodle@TotalPositiveFractions\relax%
+      \def\ds{\strip@pt\moodle@TotalPositiveFractions}%
+      \ifnum0=\c@moodle@NumStarredAnswers\relax%
+      % autopoints will never be used but we check if the sum of positive fractions is 100%
+        \ifdim\moodle@autoscore@tmp<-\moodle@fractiontol pt\relax%
+          \PackageWarning{moodle}{Positive fractions add up to more than 100 (here: \ds)}%
+          % Here we issue only a warning because Moodle accepts the \XML\ without error.
+        \else
+          \ifdim\moodle@autoscore@tmp>\moodle@fractiontol pt\relax%
+            \PackageError{moodle}{Positive fractions add up to less than 100 (here: \ds)}%
+          \fi
+        \fi
+      \else% there are starred items
+        \ifdim0pt<\moodle@autoscore@tmp\relax\else%
+      % we have starred items so the sum of user-set positive fractions must be less than 100%
+      % otherwise, starred items would lead to penalties
+          \PackageError{moodle}{Positive fractions add up to 100 or more (here: \ds):
+                             there is no positive points left to be given to starred items.}%
+        \fi
+        \divide\moodle@autoscore@tmp by \c@moodle@NumStarredAnswers\relax%
+      \fi
+    \fi
+  \else% automatic score (not in advanced score mode)
+    \global\divide\moodle@autoscore@tmp by \c@moodle@NumStarredAnswers\relax%
+  \fi
+  \xdef\moodle@AutoScore{\strip@pt\moodle@autoscore@tmp}%
+}
+\long\def\moodle@InspectMultipleAnswers@a#1{%
+  %The grouping is to keep key answer-specific key changes local.
+  \bgroup
+    \moodle@InspectMultipleAnswers@b#1\moodle@answer@rdelim
+  \egroup
+}%
+\newcommand\moodle@InspectMultipleAnswers@b[1][]{%
+  %\ifx&#1&%
+    \let\moodle@fraction\@empty%
+    \setkeys{moodle}{#1}%
+    \moodle@InspectMultipleAnswers@c%
+  %\fi
+}%
+\long\def\moodle@InspectMultipleAnswers@c#1#2\moodle@answer@rdelim{%
+  \def\test@i{#1}%
+  \ifx\test@i\@star
+    \stepcounter{moodle@NumStarredAnswers}%
+  \else
+    \ifx\moodle@fraction\@empty\else
+      \global\moodle@AdvancedScoreModetrue
+      \ifdim0pt<\moodle@fraction pt\relax%
+        \global\advance\moodle@TotalPositiveFractions by \moodle@fraction pt\relax%
+      \fi
+    \fi
+  \fi
+}%
+\newdimen\test@fraction%
+\newdimen\test@lower%
+\newdimen\test@upper%
+\def\moodle@fractionerror{%
+  \def\ds{\moodle@fraction}%
+  \PackageError{moodle}{the current fraction is not an admissible value (here: \ds)}%
+}
+{\catcode`|=3\relax
+\gdef\moodle@validfractionlist{0|5|10|11.11111|12.5|14.28571|16.66667|20|25|30|33.33333|40|50|60|66.66667|70|75|80|83.33333|90|100}}%
+\def\moodle@isfractionnear#1{%
+  \test@lower=\dimexpr #1 pt - \moodle@fractiontol pt\relax%
+  \test@upper=\dimexpr #1 pt + \moodle@fractiontol pt\relax%
+  \ifdim\test@upper>\test@fraction\relax
+    \ifdim\test@lower<\test@fraction\relax
+      \gdef\test@fractionmatched{#1}%
+    \fi
+  \fi
+}
+\def\moodle@checkfraction{%
+  \ifmoodle@allornothing
+    \ifnum\moodle@fraction>0\relax
+      \setkeys{moodle}{fraction=100}%
+    \fi
+    \ifnum\moodle@fraction<0\relax
+      \setkeys{moodle}{fraction=0}%
+    \fi
+  \else
+    %\def\test@i{#1}%
+    \test@fraction=\moodle@fraction pt\relax%
+    % take the absolute value
+    \ifdim0pt>\test@fraction\relax%
+      \test@fraction=-\moodle@fraction pt\relax%
+    \fi
+    % test if the fraction is an admissible value
+    \let\test@fractionmatched\@empty
+    \forlistloop{\moodle@isfractionnear}{\moodle@validfractionlist}%
+    \ifx\test@fractionmatched\@empty\relax
+      \moodle@fractionerror%
+    \fi
+    \ifdim\moodle@fraction pt<-\moodle@fractiontol pt\relax%
+      \xdef\moodle@fraction{-\test@fractionmatched}%
+    \else
+      \xdef\moodle@fraction{\test@fractionmatched}%
+    \fi
+  \fi
+}
 
 \long\def\savemultianswer#1{%
   \bgroup
@@ -1363,7 +1443,7 @@
       \ifmoodle@single
         \setkeys{moodle}{fraction=100}%
       \else
-        \setkeys{moodle}{fraction=\moodle@autopoints}%
+        \setkeys{moodle}{fraction=\moodle@AutoScore}%
       \fi
       \def\moodle@answertext{#2}%
     \else
@@ -1371,9 +1451,17 @@
     \fi
     \ifx\moodle@fraction\@empty\relax%
       \ifmoodle@single\relax
-        \setkeys{moodle}{fraction=0}%
+        \ifdim0pt<\moodle@sanction pt\relax
+          \setkeys{moodle}{fraction=-\moodle@sanction}%
+        \else
+          \setkeys{moodle}{fraction=0}%
+        \fi
       \else% multiple
-        \setkeys{moodle}{fraction=\moodle@autosanctions}%
+        \ifmoodle@AdvancedScoreMode
+          \setkeys{moodle}{fraction=0}%
+        \else
+          \setkeys{moodle}{fraction=-\moodle@AutoScore}%
+        \fi
       \fi
     \fi
     \trim@spaces@in\moodle@answertext
@@ -1382,16 +1470,18 @@
     \addto@xml[2]{\moodle@answers@xml}{<answer fraction="\moodle@fraction" format="html">}%
     \xa\converttohtmlmacro\xa\moodle@answertext@html\xa{\moodle@answertext}%
     \addto@xml[4]{\moodle@answers@xml}{  <text><![CDATA[<p>\moodle@answertext@html</p>]]></text>}%
+    \ifmoodle@pluginfile
+      \addto@xml[4]{\moodle@answers@xml}{\htmlize@embeddedfiletags}%
+    \fi
     \ifx\moodle@feedback\@empty\relax\else
       \trim@spaces@in\moodle@feedback
       \xa\converttohtmlmacro\xa\moodle@feedback@html\xa{\moodle@feedback}%
-      \addto@xml[4]{\moodle@answers@xml}{  <feedback format="html"><text><![CDATA[<p>\moodle@feedback@html</p>]]></text></feedback>}%
+      \addto@xml[4]{\moodle@answers@xml}{  <feedback format="html"><text><![CDATA[<p>\moodle@feedback@html</p>]]></text>\ifmoodle@pluginfile\htmlize@embeddedfiletags\fi</feedback>}%
     \fi
     \addto@xml[2]{\moodle@answers@xml}{</answer>}%
   }%
 
 \gdef\writemultiquestion{%
-
     \writetomoodle{<question type="multichoice\ifmoodle@allornothing set\fi">}%
     \moodle@writecommondata%
     \ifmoodle@allornothing\else
@@ -1409,7 +1499,7 @@
       \expandafter\gatheritems\xa{\BODY}%
       \let\moodle@questionheader=\gatheredheader
       %First, the LaTeX processing
-      \item \textbf{\moodle@questionname}
+      \item \moodle@begin@samepage\textbf{\moodle@questionname}
       \ifmoodle@handout
         \moodle@makelatextag@qtype{truefalse}
       \else
@@ -1417,13 +1507,14 @@
         \par
         \noindent
         \moodle@makelatextag@qtype{truefalse}
-        \moodle@makelatextag@value{default grade}{\moodle@marks{\csname moodle@default grade\endcsname}}
+        \moodle@makelatextag@value{default grade}{marked out of}
       \fi
       \par
       \noindent
       \moodle@questionheader
       \edef\moodle@generalfeedback{\expandonce\moodle@feedback}
       \moodle@truefalse@latexprocessing
+      \moodle@end@samepage
       %Now, writing information to XML
       \@moodle@ifgeneratexml{%
         \setkeys{moodle}{penalty=1}%
@@ -1433,7 +1524,7 @@
           \gdef\moodle@answers@xml{}%
           \setkeys{moodle}{feedback={}}%
           \xa\loopthroughitemswithcommand\xa{\xa\savetruefalseanswer}%
-          \ifnum\c@numgathereditems=1\relax%
+          \ifnum\c@numgathereditems=1\relax
             \setcounter{currentitemnumber}{2}%
             \savetruefalseanswer{}
           \fi
@@ -1448,22 +1539,22 @@
 
 
 \def\moodle@truefalse@latexprocessing{%
-  \setcounter{moodle@numcorrectanswers}{0}%
+  \setcounter{moodle@NumStarredAnswers}{0}%
   \begin{itemize} \setlength\itemsep{0pt}\setlength\parskip{0pt}%
     \loopthroughitemswithcommand{\moodle@print@truefalse@answer}%
-    \ifnum\c@currentitemnumber=2%
-      \item \textbf{False}%
+    \ifnum\c@currentitemnumber=2\relax
+      \item \textbf{\GetTranslation{False}}%
     \fi
   \end{itemize}
   \ifmoodle@handout\else
     \ifx\moodle@generalfeedback\@empty\relax\else%
-      \fbox{\parbox{\linewidth}{\emph{\moodle@generalfeedback}}}%
+      \fbox{\parbox{.96\linewidth}{\emph{\moodle@generalfeedback}}}%
     \fi
   \fi
-  \ifnum\c@moodle@numcorrectanswers=0\relax%
+  \ifnum\c@moodle@NumStarredAnswers=0\relax
     \PackageError{moodle}{No answer is explicitly marked as correct (*). Be sure one answer leads to points.}%
   \fi
-  \ifnum\c@moodle@numcorrectanswers>1\relax%
+  \ifnum\c@moodle@NumStarredAnswers>1\relax
     \PackageError{moodle}{Two answers are explicitly marked as correct (*). Be sure only one answer leads to points.}%
   \fi
 }
@@ -1486,35 +1577,35 @@
      \fi
    }%
    \def\moodle@print@truefalse@answer@int@int@empty{%
-     \ifnum\c@currentitemnumber=1%
-\def\moodle@answertext{True}%
+     \ifnum\c@currentitemnumber=1\relax
+       \def\moodle@answertext{\GetTranslation{True}}%
      \fi
-     \ifnum\c@currentitemnumber=2%
-\def\moodle@answertext{False}%
+     \ifnum\c@currentitemnumber=2\relax
+       \def\moodle@answertext{\GetTranslation{False}}%
      \fi
      \item \textbf{\moodle@answertext}%
      \ifmoodle@handout\else
        \ifx\moodle@feedback\@empty\relax\else
-         ~\hfill \emph{$\rightarrow$ \moodle@feedback}%
+         ~\moodle@preFeedback \emph{$\rightarrow$ \moodle@feedback}%
        \fi
      \fi
    }%
    \def\moodle@print@truefalse@answer@int@int@int#1#2\@rdelim{%
-     \ifnum\c@currentitemnumber=1%
-\def\moodle@answertext{True}%
+     \ifnum\c@currentitemnumber=1\relax
+       \def\moodle@answertext{\GetTranslation{True}}%
      \fi
-     \ifnum\c@currentitemnumber=2%
-\def\moodle@answertext{False}%
+     \ifnum\c@currentitemnumber=2\relax
+       \def\moodle@answertext{\GetTranslation{False}}%
      \fi
      \item \textbf{\moodle@answertext}%
-     \ifnum\c@currentitemnumber<3%
+     \ifnum\c@currentitemnumber<3\relax
        \def\test@i{#1}%
        %\trim@spaces@in\test@i
        \ifx\test@i\@star
          \ifmoodle@handout\else
            ~$\checkmark$%
          \fi
-         \stepcounter{moodle@numcorrectanswers}%
+         \stepcounter{moodle@NumStarredAnswers}%
        \else
          ~%
        \fi
@@ -1524,13 +1615,13 @@
            \trim@spaces@in\test@ii
            \ifx\test@ii\@empty\relax\else
              \ifx\test@i\@star%
-               \hfill \emph{$\rightarrow$ #2}%
+               \moodle@preFeedback \emph{$\rightarrow$ #2}%
              \else%
-               \hfill \emph{$\rightarrow$ #1#2}%
+               \moodle@preFeedback \emph{$\rightarrow$ #1#2}%
              \fi
            \fi
          \else
-           \hfill \emph{$\rightarrow$ \moodle@feedback}%
+           \moodle@preFeedback \emph{$\rightarrow$ \moodle@feedback}%
          \fi
        \fi
      \fi
@@ -1557,19 +1648,22 @@
    }%
    \def\savetruefalseanswer@int@int@empty{%
      \setkeys{moodle}{fraction=0}%
-     \ifnum\c@currentitemnumber=1%
-\def\moodle@answertext{true}%
+     \ifnum\c@currentitemnumber=1\relax
+       \def\moodle@answertext{true}%
      \fi
-     \ifnum\c@currentitemnumber=2%
-\def\moodle@answertext{false}%
+     \ifnum\c@currentitemnumber=2\relax
+       \def\moodle@answertext{false}%
      \fi
-     \ifnum\c@currentitemnumber<3%
+     \ifnum\c@currentitemnumber<3\relax
        \addto@xml[2]{\moodle@answers@xml}{<answer fraction="\moodle@fraction" format="plain_text">}%
        \addto@xml[4]{\moodle@answers@xml}{  <text>\moodle@answertext</text>}%
+       \ifmoodle@pluginfile
+         \addto@xml[4]{\moodle@answers@xml}{\htmlize@embeddedfiletags}%
+       \fi
        \ifx\moodle@feedback\@empty\relax\else
          \trim@spaces@in\moodle@feedback
          \xa\converttohtmlmacro\xa\moodle@feedback@html\xa{\moodle@feedback}%
-         \addto@xml[4]{\moodle@answers@xml}{  <feedback format="html"><text><![CDATA[<p>\moodle@feedback@html</p>]]></text></feedback>}%
+         \addto@xml[4]{\moodle@answers@xml}{  <feedback format="html"><text><![CDATA[<p>\moodle@feedback@html</p>]]></text>\ifmoodle@pluginfile\htmlize@embeddedfiletags\fi</feedback>}%
        \fi
        \addto@xml[2]{\moodle@answers@xml}{</answer>}%
      \fi
@@ -1581,15 +1675,18 @@
      \else
        \setkeys{moodle}{fraction=0}%
      \fi
-     \ifnum\c@currentitemnumber=1%
-\def\moodle@answertext{true}%
+     \ifnum\c@currentitemnumber=1\relax
+       \def\moodle@answertext{true}%
      \fi
-     \ifnum\c@currentitemnumber=2%
-\def\moodle@answertext{false}%
+     \ifnum\c@currentitemnumber=2\relax
+       \def\moodle@answertext{false}%
      \fi
-     \ifnum\c@currentitemnumber<3%
+     \ifnum\c@currentitemnumber<3\relax
        \addto@xml[2]{\moodle@answers@xml}{<answer fraction="\moodle@fraction" format="plain_text">}%
        \addto@xml[4]{\moodle@answers@xml}{  <text>\moodle@answertext</text>}%
+       \ifmoodle@pluginfile
+         \addto@xml[4]{\moodle@answers@xml}{\htmlize@embeddedfiletags}%
+       \fi
        \ifx\moodle@feedback\@empty\relax
          \def\test@ii{#2}
          \ifx\test@ii\@empty\relax\else
@@ -1598,12 +1695,12 @@
            \else%
              \xa\converttohtmlmacro\xa\moodle@feedback@html\xa{#1#2}%
            \fi%
-           \addto@xml[4]{\moodle@answers@xml}{  <feedback format="html"><text><![CDATA[<p>\moodle@feedback@html</p>]]></text></feedback>}%
+           \addto@xml[4]{\moodle@answers@xml}{  <feedback format="html"><text><![CDATA[<p>\moodle@feedback@html</p>]]></text>\ifmoodle@pluginfile\htmlize@embeddedfiletags\fi</feedback>}%
          \fi
        \else
          \trim@spaces@in\moodle@feedback
          \xa\converttohtmlmacro\xa\moodle@feedback@html\xa{\moodle@feedback}%
-         \addto@xml[4]{\moodle@answers@xml}{  <feedback format="html"><text><![CDATA[<p>\moodle@feedback@html</p>]]></text></feedback>}%
+         \addto@xml[4]{\moodle@answers@xml}{  <feedback format="html"><text><![CDATA[<p>\moodle@feedback@html</p>]]></text>\ifmoodle@pluginfile\htmlize@embeddedfiletags\fi</feedback>}%
        \fi
        \addto@xml[2]{\moodle@answers@xml}{</answer>}%
      \fi
@@ -1620,31 +1717,37 @@
 \def\moodle@makelatextag@matching{%
   \ifmoodle@handout\else
     \ifmoodle@draganddrop
-      \moodle@makelatextagbox{Drag and drop}\relax%
+      \moodle@makelatextag@other{Drag and drop}\relax%
     \fi
     \ifmoodle@shuffle
-      \moodle@makelatextagbox{Shuffle}\relax%
+      \moodle@makelatextag@other{Shuffle}\relax%
     \fi
   \fi
 }
-
+\long\def\moodle@matching@left#1{%
+  \parbox[c]{.9\linewidth}{\raggedleft #1}\hfil\vrule width .5pt$\bullet$%
+}%
+\long\def\moodle@matching@right#1{%
+  $\bullet$\vrule width .5pt\hfil\parbox[c]{.9\linewidth}{#1}%
+}%
 \def\moodle@matching@latexprocessing{%
   \bgroup
     %\let\answer=\hfill
-    \par%\noindent
+    \par\noindent
     \ifmoodle@handout
-      \NewList{questionlist}
-      \NewList{answerlist}
+      \NewList{questionlist}%
+      \gdef\matcheslist{}%
+      \NewList{answerlist}%
+    \else
+      \long\def\matching@table@text{}%
     \fi
-    \def\matching@table@text{}%
-    %  \ifnum\c@numgathereditems>2\relax%
-    \setcounter{moodle@numcorrectanswers}{0}% Here this counter is for "questions" (items on the left column)
+    \setcounter{moodle@NumStarredAnswers}{0}% Here this counter is for "questions" (items on the left column)
     \loopthroughitemswithcommand{\moodle@print@matching@answer}%
-    \ifnum\c@numgathereditems<3%
-      \PackageWarning{moodle}{Moodle expects at least three "answers" with matching type}%
+    \ifnum\c@numgathereditems<3\relax
+      \PackageWarning{moodle}{Moodle expects at least three proposed matches in matching questions}%
     \fi
-    \ifnum\c@moodle@numcorrectanswers<2%
-      \PackageWarning{moodle}{Moodle expects at least two "questions" with the matching type}%
+    \ifnum\c@moodle@NumStarredAnswers<2\relax
+      \PackageWarning{moodle}{Moodle expects at least two items in matching questions}%
     \fi
     \ifmoodle@handout
       \ifmoodle@shuffle
@@ -1652,23 +1755,25 @@
       \else
         \let\moodle@matching@loop=\ForEachFirstItem
       \fi
-      \moodle@matching@loop{questionlist}{Question}{
-        \xdef\test@i{\Question}%
-        \ExtractRandomItem{answerlist}{Answer}%
-        \ifx\test@i\@empty
-          \xdef\matching@table@text{\expandonce\matching@table@text & & $\bullet$~\expandonce\Answer\\}%
-        \else
-          \xdef\matching@table@text{\expandonce\matching@table@text\expandonce\Question~$\bullet$ & & $\bullet$~\expandonce\Answer\\}%
-        \fi
+      \begin{minipage}{.43\linewidth}%
+      \moodle@matching@loop{questionlist}{Question}{%
+        \moodle@matching@left{\Question}%
+        \vskip 4pt\relax
       }%
-    \fi
-    \begin{tabular}{@{}>{\raggedleft}p{.45\linewidth}p{.1\linewidth}p{.45\linewidth}@{}}%
-      \matching@table@text
-    \end{tabular}%
-    \par
-    \ifmoodle@handout\else
+      \end{minipage}%
+      \hfill
+      \begin{minipage}{.43\linewidth}%
+      \ForEachFirstItem{answerlist}{Answer}{%
+        \moodle@matching@right{\Answer}%
+        \vskip 4pt\relax
+      }%
+      \end{minipage}%
+    \else
+      \begin{tabular}{@{}p{.43\linewidth}@{}p{.1\linewidth}@{}p{.43\linewidth}@{}}%
+        \matching@table@text
+      \end{tabular}%
       \ifx\moodle@generalfeedback\@empty\relax\else%
-        \fbox{\parbox{\linewidth}{\emph{\moodle@generalfeedback}}}%
+        \fbox{\parbox{.96\linewidth}{\emph{\moodle@generalfeedback}}}%
       \fi
     \fi
   \egroup
@@ -1685,18 +1790,30 @@
   \def\test@i{#1}%
   \trim@spaces@in\test@i
   \ifmoodle@handout
-    \ifx\test@i\@empty
-      \InsertLastItem{questionlist}{\@empty}%
-    \else
+    \ifx\test@i\@empty\else
+      \stepcounter{moodle@NumStarredAnswers}%
       \InsertLastItem{questionlist}{#1}%
     \fi
-    \InsertLastItem{answerlist}{#2}%
+    \edef\test@ii{\detokenize{#2}}%
+    \trim@spaces@in\test@ii
+    \trim@spaces@in\test@ii% don't know why the 2nd call is required
+    % add proposed match only if not already in the list
+    \xifinlist{\expandonce\test@ii}{\matcheslist}{}{%
+      \listeadd\matcheslist{\expandonce\test@ii}%
+      % matches are always proposed shuffled
+      \InsertRandomItem{answerlist}{#2}%
+    }%
   \else
     \ifx\test@i\@empty
-      \g@addto@macro\matching@table@text{&&$\bullet$~#2\\}%
+      \xa\g@addto@macro\xa\matching@table@text\xa{%
+        &&\moodle@matching@right{#2}\\\\\relax%
+      }%
     \else
-      \stepcounter{moodle@numcorrectanswers}%
-      \xa\g@addto@macro\xa\matching@table@text\xa{\test@i~$\bullet$&\leavevmode\cleaders\hb@xt@.44em{\hss$\cdot$\hss}\hfill\kern\z@&$\bullet$~#2\\}%
+      \stepcounter{moodle@NumStarredAnswers}%
+      \xa\g@addto@macro\xa\matching@table@text\xa{%
+        \moodle@matching@left{#1}&\leavevmode\leaders\hb@xt@.44em{\hss$\cdot$\hss}\hfill\kern\z@%
+        &\moodle@matching@right{#2}\\\\\relax
+      }%
     \fi
   \fi
 }%
@@ -1718,20 +1835,21 @@
      \def\moodle@subanswertext{#2}%
      \trim@spaces@in\moodle@subquestiontext
      \xa\converttohtmlmacro\xa\moodle@subquestiontext@htmlized\xa{\moodle@subquestiontext}%
-     \trim@spaces@in\moodle@subanswertext
-     \ifmoodle@draganddrop
-       \xa\converttohtmlmacro\xa\moodle@subanswertext@htmlized\xa{\moodle@subanswertext}%
-     \fi
      \addto@xml[2]{\moodle@answers@xml}{<subquestion format="html">}%
      \ifx\moodle@subquestiontext\@empty
        \addto@xml[4]{\moodle@answers@xml}{  <text></text>}%
      \else
-       \addto@xml[4]{\moodle@answers@xml}{  <text><![CDATA[<p>\moodle@subquestiontext@htmlized</p>]]></text>}%
+       \addto@xml[4]{\moodle@answers@xml}{  <text><![CDATA[<p>\moodle@subquestiontext@htmlized</p>]]></text>\ifmoodle@pluginfile\htmlize@embeddedfiletags\fi}%
      \fi
+     \trim@spaces@in\moodle@subanswertext
+     \trim@spaces@in\moodle@subanswertext% don't know why but a second call seems required...
+     %\ifmoodle@draganddrop
+       \xa\converttohtmlmacro\xa\moodle@subanswertext@htmlized\xa{\moodle@subanswertext}%
+     %\fi
      \ifmoodle@draganddrop
-       \addto@xml[4]{\moodle@answers@xml}{  <answer format="html"><text><![CDATA[<p>\moodle@subanswertext@htmlized</p>]]></text></answer>}%
+       \addto@xml[4]{\moodle@answers@xml}{  <answer format="html"><text><![CDATA[<p>\moodle@subanswertext@htmlized</p>]]></text>\ifmoodle@pluginfile\htmlize@embeddedfiletags\fi</answer>}%
      \else
-       \addto@xml[4]{\moodle@answers@xml}{  <answer><text>\moodle@subanswertext</text></answer>}%
+       \addto@xml[4]{\moodle@answers@xml}{  <answer format="html"><text><![CDATA[\moodle@subanswertext@htmlized]]></text></answer>}%
      \fi
      \addto@xml[2]{\moodle@answers@xml}{</subquestion>}%
    }%
@@ -1755,7 +1873,7 @@
     % A cloze question won't have any \item's in it, so we just use \BODY.
     \moodle@enableclozeenvironments
     %First, the LaTeX processing.
-      \item \textbf{\moodle@questionname}
+      \item \moodle@begin@samepage\textbf{\moodle@questionname}
       \ifmoodle@handout
         \moodle@makelatextag@qtype{cloze}
       \else
@@ -1772,12 +1890,13 @@
       %\csname moodle@cloze@latexprocessing\endcsname
       \ifmoodle@handout\else
         \ifx\moodle@generalfeedback\@empty\relax\else%
-          \fbox{\parbox{\linewidth}{\emph{\moodle@generalfeedback}}}%
+          \fbox{\parbox{.96\linewidth}{\emph{\moodle@generalfeedback}}}%
         \fi
       \fi
+      \moodle@end@samepage
     %Now, writing information to memory.
     \@moodle@ifgeneratexml{%
-      \xa\questiontext\xa{\BODY}% Save the question text as HTML.
+      \xa\questiontext\xa{\BODY}% Save the question text as \HTML.
       \writeclozequestion
     }{}%
   \egroup%
@@ -1802,11 +1921,46 @@
     \moodle@writetags%
   \writetomoodle{</question>}%
 }%
+\newdimen\moodle@tmpdim
+\def\moodle@checkclozefraction{%
+  \moodle@tmpdim=\moodle@fraction pt\relax
+  % Rounding is performed in three steps:
+  % 1) round(x)=floor(x+1/2)
+  \advance\moodle@tmpdim by .5pt\relax
+  % 2) floor(x)=trunc(x) if x>0, and floor(x)=trunc(x-1) if x<0
+  \ifdim\moodle@tmpdim<0pt\relax\advance\moodle@tmpdim by -1pt\fi
+  % 3) Truncation because the quantum of TeX dimensions is 1/65536-th of a point.
+  \divide\moodle@tmpdim by 65536\relax\multiply\moodle@tmpdim by 65536\relax
+  \def\moodle@tmpval{\strip@pt\moodle@tmpdim}%
+  \ifdim\moodle@tmpdim=\moodle@fraction pt\else
+    \PackageWarning{moodle}{in cloze questions, fractions must be integers. Rounding \moodle@fraction\space to \moodle@tmpval}%
+  \fi
+  \xdef\moodle@fraction{\moodle@tmpval}% in any case, take eventual decimals out (e.g. change 10.0 for 10)
+}%
 
+\def\moodle@checkclozegrade{%
+  \moodle@tmpdim=\csname moodle@default grade\endcsname pt\relax
+  \ifdim\moodle@tmpdim<1 pt\relax
+    \PackageWarning{moodle}{for cloze questions, the default grade must be a positive integer. Changing the default grade from \csname moodle@default grade\endcsname\space to 1}%
+    \csdef{moodle@default grade}{1}%
+  \else % Rounding is performed in three steps:
+    % 1) round(x)=floor(x+1/2)
+    \advance\moodle@tmpdim by .5pt\relax
+    % 2) floor(x)=trunc(x) if x>0, and floor(x)=trunc(x-1) if x<0
+    \ifdim\moodle@tmpdim<0pt\relax\advance\moodle@tmpdim by -1pt\fi
+    % 3) Truncation because the quantum of TeX dimensions is 1/65536-th of a point.
+    \divide\moodle@tmpdim by 65536\relax\multiply\moodle@tmpdim by 65536\relax
+    \def\moodle@tmpval{\strip@pt\moodle@tmpdim}%
+    \ifdim\moodle@tmpdim=\csname moodle@default grade\endcsname pt\else
+      \PackageWarning{moodle}{for cloze questions, the default grade must be a positive integer. Rounding \csname moodle@default grade\endcsname\space to \moodle@tmpval}%
+    \fi
+    \csedef{moodle@default grade}{\moodle@tmpval}% in any case, take eventual decimals out (e.g. change 10.0 for 10)
+  \fi
+}%
 \NewEnviron{clozemulti}[1][]{%
   \bgroup
-    \setkeys{moodle}{default grade=1}%
     \setkeys{moodle}{#1}%
+    \moodle@checkclozegrade
     \expandafter\gatheritems\xa{\BODY}%
     \let\moodle@questionheader=\gatheredheader
     \ifhtmlizer@active
@@ -1815,30 +1969,35 @@
       \xa\g@addto@macro\xa\moodle@clozemulti@output\xa{\moodle@questionheader}%
       \def\clozemulti@coding{}%
       \edef\clozemulti@coding{\csname moodle@default grade\endcsname:}%
-      \ifmoodle@multiple
-        \PackageWarning{moodle}{Cloze Multiresponse only supported by Moodle 3.5+}
-        \g@addto@macro{\clozemulti@coding}{MULTIRESPONSE}%
-      \else
+      \ifmoodle@single
         \g@addto@macro{\clozemulti@coding}{MULTICHOICE}%
+      \else
+        \moodle@WarningOrError{3}{5}{Cloze Multiresponse}%
+        \g@addto@macro{\clozemulti@coding}{MULTIRESPONSE}%
       \fi
       \ifcase\moodle@multi@mode\relax
          % Case 0: dropdown box style
-         \ifmoodle@shuffle
-           \g@addto@macro{\clozemulti@coding}{_}%
-         \fi
+        \ifmoodle@single\else
+           \PackageError{moodle}{Inline mode (dropdown box) incompatible with multiresponse.}
+        \fi
+        \ifmoodle@shuffle
+          \g@addto@macro{\clozemulti@coding}{_}%
+        \fi
       \or
         % Case 1: vertical style
-        \ifmoodle@multiple
-          \PackageError{moodle}{Vertical mode (dropdown box) incompatible with multiresponse.}
-        \else
+        \ifmoodle@single
           \g@addto@macro{\clozemulti@coding}{_V}%
+        \else
+           \ifmoodle@shuffle
+             \g@addto@macro{\clozemulti@coding}{_}%
+           \fi
         \fi
       \else
         % Case 2: horizontal radio buttons
         \g@addto@macro{\clozemulti@coding}{_H}%
       \fi
       \ifmoodle@shuffle
-        \PackageWarning{moodle}{Cloze Multi Shuffling only supported by Moodle 3.0+}
+        \moodle@WarningOrError{3}{0}{Cloze Multi Shuffling}
         \g@addto@macro{\clozemulti@coding}{S:}%
       \else
         \g@addto@macro{\clozemulti@coding}{:}%
@@ -1860,10 +2019,11 @@
       \noindent
       \moodle@makelatextag@qtype{multi}
       \ifmoodle@handout\else
-        \moodle@makelatextag@value{default grade}{\moodle@marks{\csname moodle@default grade\endcsname}}
+        \moodle@makelatextag@value{default grade}{marked out of}
         \moodle@makelatextag@multi
       \fi
       \def\cloze@multichoice@table@text{}%
+      \ifmoodle@single\relax\else\moodle@InspectMultipleAnswers\fi
       \ifmoodle@handout\NewList{answerlist}\fi
       %\let\moodle@feedback=\@empty
       \loopthroughitemswithcommand{\moodle@print@clozemultichoice@answer}%
@@ -1912,7 +2072,8 @@
   \moodle@print@clozemultichoice@answer@int#1 \@rdelim%
 }%
 \newcommand\moodle@print@clozemultichoice@answer@int[1][]{%
-  \setkeys{moodle}{fraction=0,#1}%
+  \let\moodle@fraction\@empty%
+  \setkeys{moodle}{#1}%
   \moodle@print@clozemultichoice@answer@int@int%
 }%
 \long\def\moodle@print@clozemultichoice@answer@int@int#1#2\@rdelim{%
@@ -1937,13 +2098,43 @@
   \trim@spaces@in\moodle@answertext
   \trim@spaces@in\moodle@answertext
   \ifmoodle@handout\else
-    \ifx\moodle@fraction\@hundred
-      \g@addto@macro\moodle@answertext{$~\checkmark$}%
-    \else
-      \moodle@checkfraction
-      \ifdim0pt=\moodle@fraction pt\relax\else
-        \xdef\moodle@answertext{\expandonce\moodle@answertext$~(\moodle@fraction\%)$}%
+    \ifmoodle@single%
+      \ifx\moodle@fraction\@empty\relax%
+        \ifdim0pt<\moodle@sanction pt\relax
+          \setkeys{moodle}{fraction=-\moodle@sanction}%
+        \else
+          \setkeys{moodle}{fraction=0}%
+        \fi
       \fi
+      \moodle@checkclozefraction
+      \ifx\moodle@fraction\@hundred%
+        \trim@spaces@in\moodle@answertext%
+        \g@addto@macro\moodle@answertext{$~\checkmark$}%
+      \else
+        \ifdim0pt=\moodle@fraction pt\relax\else%
+          \xdef\moodle@answertext{\expandonce\moodle@answertext$~(\moodle@fraction\%)$}%
+        \fi
+      \fi
+    \else% multiple
+      \ifx\moodle@fraction\@empty\relax%
+        \ifmoodle@AdvancedScoreMode
+          \setkeys{moodle}{fraction=0}%
+        \else
+          \setkeys{moodle}{fraction=-\moodle@AutoScore}%
+        \fi
+      \else
+        \ifmoodle@AdvancedScoreMode
+          \moodle@checkclozefraction
+          \ifdim0pt<\moodle@fraction pt\relax
+            \moodle@autoscore@tmp=\moodle@PositiveScoreFactor\relax%
+            \multiply\moodle@autoscore@tmp by \moodle@fraction\relax%
+            \xdef\moodle@fraction{\strip@pt\moodle@autoscore@tmp}%
+          \fi
+        \else
+          \setkeys{moodle}{fraction=\moodle@AutoScore}%
+        \fi
+      \fi
+      \xdef\moodle@answertext{\expandonce\moodle@answertext$~(\moodle@fraction\%)$}%
     \fi
   \fi
   \ifcase\moodle@multi@mode\relax
@@ -1955,7 +2146,7 @@
   \or % Case 1
     \ifmoodle@handout\else
       \ifx\moodle@feedback\@empty\relax\else
-        \xdef\moodle@answertext{\expandonce\moodle@answertext \hfill \expandonce\emph{$\rightarrow$ \expandonce\moodle@feedback}}%
+        \xdef\moodle@answertext{\expandonce\moodle@answertext \moodle@preFeedback \expandonce\emph{$\rightarrow$ \expandonce\moodle@feedback}}%
       \fi
     \fi
   \else % otherwise
@@ -1997,9 +2188,9 @@
   \trim@spaces@in\moodle@answertext
   \trim@spaces@in\moodle@answertext
   \ifx\moodle@fraction\@hundred
-    \g@addto@macro\clozemulti@coding{=}%
+    \g@addto@macro\clozemulti@coding{\clozecorrect}%
   \else
-    \moodle@checkfraction
+    \moodle@checkclozefraction
     \ifdim0pt=\moodle@fraction pt\relax\else
       \xdef\clozemulti@coding{\expandonce\clozemulti@coding\otherpercent\moodle@fraction\otherpercent}%
     \fi
@@ -2013,8 +2204,8 @@
   \bgroup
     \expandafter\gatheritems\expandafter{\BODY}%
     \let\moodle@questionheader=\gatheredheader
-    \setkeys{moodle}{default grade=1}%
     \setkeys{moodle}{#1}%
+    \moodle@checkclozegrade
     \ifhtmlizer@active
       %HTML version
       \def\moodle@clozenumerical@output{}%
@@ -2037,7 +2228,7 @@
       \noindent
       \moodle@makelatextag@qtype{numerical}
       \ifmoodle@handout\else
-        \moodle@makelatextag@value{default grade}{\moodle@marks{\csname moodle@default grade\endcsname}}
+        \moodle@makelatextag@value{default grade}{marked out of}
         \moodle@makelatextag@numerical
         \par
         \noindent
@@ -2066,23 +2257,25 @@
   \setkeys{moodle}{#1}%
   \moodle@print@clozenumerical@answer@int@int%
 }%
+\def\moodle@zero{0}%
 \def\moodle@print@clozenumerical@answer@int@int#1\@rdelim{%
   \ifx\moodle@fraction\@hundred
     \def\moodle@clozenumericalprint@fraction{$~\checkmark$}%
   \else
-    \moodle@checkfraction
+    \moodle@checkclozefraction
     \edef\moodle@clozenumericalprint@fraction{$(~\moodle@fraction\%)$}%
   \fi
-  \ifnum\z@=\moodle@tolerance
+  \ifx\moodle@zero\moodle@tolerance%
     \def\moodle@clozenumericalprint@tolerance{}%
   \else
-    \edef\moodle@clozenumericalprint@tolerance{$\,\pm\,$\moodle@printnum{\moodle@tolerance}}%
+    \edef\moodle@clozenumericalprint@tolerance{$\,\pm\,$\moodle@printnum{\expandonce\moodle@tolerance}}%
   \fi
-  \xdef\test@i{\trim@spaces{#1}}%
+  \gdef\test@i{#1}%
+  \trim@spaces@in\test@i
   \ifx\test@i\@star
-    \xdef\moodle@clozenumericalprint@line{#1~\moodle@clozenumericalprint@fraction & \expandonce\emph{\expandonce\moodle@feedback}}%
+    \xdef\moodle@clozenumericalprint@line{\expandonce\test@i~\moodle@clozenumericalprint@fraction & \expandonce\emph{\expandonce\moodle@feedback}}%
   \else
-    \xdef\moodle@clozenumericalprint@line{\moodle@printnum{#1}\moodle@clozenumericalprint@tolerance~\moodle@clozenumericalprint@fraction & \expandonce\emph{\expandonce\moodle@feedback}}%
+    \xdef\moodle@clozenumericalprint@line{\moodle@printnum{\expandonce\test@i}\expandonce\moodle@clozenumericalprint@tolerance~\moodle@clozenumericalprint@fraction & \expandonce\emph{\expandonce\moodle@feedback}}%
   \fi
   \xa\g@addto@macro\xa\cloze@numerical@table@text\xa{\moodle@clozenumericalprint@line \\\hline}%
 }%
@@ -2103,9 +2296,9 @@
   \def\moodle@answertext{#1}%
   \trim@spaces@in\moodle@answertext
   \ifx\moodle@fraction\@hundred
-    \g@addto@macro\clozenumerical@coding{=}%
+    \g@addto@macro\clozenumerical@coding{\clozecorrect}%
   \else
-    \moodle@checkfraction
+    \moodle@checkclozefraction
     \ifdim0pt=\moodle@fraction pt\relax\else
       \xdef\clozenumerical@coding{\expandonce\clozenumerical@coding\otherpercent\moodle@fraction\otherpercent}%
     \fi
@@ -2124,21 +2317,14 @@
   \bgroup
     \expandafter\gatheritems\expandafter{\BODY}%
     \let\moodle@questionheader=\gatheredheader
-    \setkeys{moodle}{default grade=1}%
     \setkeys{moodle}{#1}%
-    %Because nesting conditionals built by \csname doesn't work well,
-    %we'll test '\ifmoodle@case sensitive' now and save the result in \count0.
-    \csname ifmoodle@case sensitive\endcsname
-      \count0=1\relax
-    \else
-      \count0=0\relax
-    \fi
+    \moodle@checkclozegrade
     \ifhtmlizer@active
       %HTML version
       \def\moodle@clozeshortanswer@output{}%
       \xa\g@addto@macro\xa\moodle@clozeshortanswer@output\xa{\moodle@questionheader}%
       \def\clozeshortanswer@coding{}%
-      \ifnum\count0=1\relax
+      \ifmoodle@usecase
         \edef\clozeshortanswer@coding{\csname moodle@default grade\endcsname:SHORTANSWER_C:}%
       \else
         \edef\clozeshortanswer@coding{\csname moodle@default grade\endcsname:SHORTANSWER:}%
@@ -2159,7 +2345,7 @@
       \noindent
       \moodle@makelatextag@qtype{shortanswer}
       \ifmoodle@handout\else
-        \moodle@makelatextag@value{default grade}{\moodle@marks{\csname moodle@default grade\endcsname}}
+        \moodle@makelatextag@value{default grade}{marked out of}
         \moodle@makelatextag@shortanswer
         \par
         \noindent
@@ -2192,7 +2378,7 @@
   \ifx\moodle@fraction\@hundred
     \def\moodle@clozeshortanswerprint@fraction{$~\checkmark$}%
   \else
-    \moodle@checkfraction
+    \moodle@checkclozefraction
     \edef\moodle@clozeshortanswerprint@fraction{$~(\moodle@fraction\%)$}%
   \fi
   \xdef\moodle@clozeshortanswerprint@line{#1~\moodle@clozeshortanswerprint@fraction & \expandonce\emph{\expandonce\moodle@feedback}}%
@@ -2215,9 +2401,9 @@
   \def\moodle@answertext{#1}%
   \trim@spaces@in\moodle@answertext
   \ifx\moodle@fraction\@hundred
-    \g@addto@macro\clozeshortanswer@coding{=}%
+    \g@addto@macro\clozeshortanswer@coding{\clozecorrect}%
   \else
-    \moodle@checkfraction
+    \moodle@checkclozefraction
     \ifdim0pt=\moodle@fraction pt\relax\else
       \xdef\clozeshortanswer@coding{\expandonce\clozeshortanswer@coding\otherpercent\moodle@fraction\otherpercent}%
     \fi
@@ -2233,8 +2419,9 @@
  \catcode`\^=12\gdef\othercaret{^}%
  \catcode`\$=12\gdef\otherdollar{$}%
  \catcode`\%=12\gdef\otherpercent{%}
- \catcode`\%=12\gdef\otherlbracket{[}
- \catcode`\%=12\gdef\otherrbracket{]}}%
+ \catcode`\[=12\gdef\otherlbracket{[}
+ \catcode`\]=12\gdef\otherrbracket{]}}%
+{\catcode`\=\string=12\gdef\otherequal{=}}%
 {\catcode`\ =12\gdef\otherspace{ }}%
 {\ttfamily\catcode`\|=0\catcode`\\=12\relax|gdef|otherbackslash{\}}%
 {\catcode`\[=1\catcode`\]=2\catcode`\{=12\catcode`\}=12%
@@ -2249,6 +2436,7 @@
 \edef\@otherdollar{\otherdollar}%
 \edef\@otherbackslash{\otherbackslash}%
 \edef\@othertilde{\othertilde}%
+\edef\@otherequal{\otherequal}%
 { \catcode`\[=1\relax
   \catcode`\]=2\relax
   \catcode`\|=0\relax
@@ -2353,6 +2541,9 @@
 \long\def\converttohtmlmacro#1#2{%
   \grouplevel=0\relax
   \def\htmlize@output{}%
+  \ifmoodle@pluginfile
+    \gdef\htmlize@embeddedfiletags{}%
+  \fi
   \htmlizer@activetrue%
   \converttohtml@int{#2}%
   \htmlizer@activefalse%
@@ -2371,6 +2562,7 @@
 \def\@lt{<}%
 \def\@gt{>}%
 \def\@dash{-}%
+\def\@dq{"}%
 
 \long\def\htmlize@recursive@i#1#2#3\htmlize@rdelim@i{%
   % #1#2#3 is a sequence of tokens.  All should be categories 11 (letter) or 12 (other).
@@ -2382,23 +2574,27 @@
     \let\htmlize@next@i=\relax
   \else
     \ifx\test@i\@otherlbrace%
-      \xa\g@addto@macro\xa\htmlize@output\xa{\otherlbrace}%
-      \bgroup
-        \normalcatcodes
+      \ifx\test@ii\@otherrbrace%
+        \moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherlbrace\otherrbrace}}{}%
+        \def\htmlize@next@i{\htmlize@recursive@i#3\htmlize@rdelim@i}%
+      \else
+        \xa\g@addto@macro\xa\htmlize@output\xa{\otherlbrace}%
+        \bgroup
+          \normalcatcodes
         %We need to rescan the input as TeX code,
         % so TeX can automatically pull off the first group in braces.
         % First, let's get rid of the terminal \@htmlize@stop codes.
-        {\def\@htmlize@stop{}\xdef\htmlize@scrap{#1#2#3}}%
-        \let\htmlize@text@to@rescan=\htmlize@scrap%
+          {\def\@htmlize@stop{}\xdef\htmlize@scrap{#1#2#3}}%
+          \let\htmlize@text@to@rescan=\htmlize@scrap%
         % Next, we retokenize the code.
-        \xa\retokenizenormal@to@macro\xa\htmlize@rescanned\xa{\htmlize@text@to@rescan}%
+          \xa\retokenizenormal@to@macro\xa\htmlize@rescanned\xa{\htmlize@text@to@rescan}%
         % Now break it up into two pieces.
-        \xa\htmlize@grabblock\htmlize@rescanned\@htmlize@stop\htmlize@rdelim@ii%
+          \xa\htmlize@grabblock\htmlize@rescanned\@htmlize@stop\htmlize@rdelim@ii%
         % The first piece, \htmlize@blockinbraces, will be passed as a unit to \converttohtml@int.
         % The second part, \htmlize@remainder, will continue at this depth of grouping.
         % Therefore we'll detokenize \htmlize@remainder here.
-        \xa\ultradetokenize@to@macro\xa\htmlize@remainder@detokenized\xa{\htmlize@remainder}%
-        \edef\htmlize@remainder@detokenized{\xa\htmlize@remove@stopcode\htmlize@remainder@detokenized}%
+          \xa\ultradetokenize@to@macro\xa\htmlize@remainder@detokenized\xa{\htmlize@remainder}%
+          \edef\htmlize@remainder@detokenized{\xa\htmlize@remove@stopcode\htmlize@remainder@detokenized}%
         %
         % Now build \htmlize@next@i.
         % When done, should look like
@@ -2407,20 +2603,21 @@
         %   \htmlize@recursive@i\htmlize@remainder@detokenized\@htmlize@stop\@htmlize@stop\@htmlize@stop\htmlize@rdelim@i%
         % but with all three arguments expanded.
         % Note that we are running
-        \gdef\htmlize@scrap{\converttohtml@int}%
-        \xa\g@addto@macro\xa\htmlize@scrap\xa{\xa{\htmlize@blockinbraces}}%
-        \g@addto@macro\htmlize@scrap{\g@addto@macro\htmlize@output}%
-        \ifmoodle@clozemode
-          \xa\g@addto@macro\xa\htmlize@scrap\xa{\xa{\otherbackslash\otherrbrace}}%
-        \else
-          \xa\g@addto@macro\xa\htmlize@scrap\xa{\xa{\otherrbrace}}%
-        \fi
-        \g@addto@macro\htmlize@scrap{\htmlize@recursive@i}%
-        \xa\g@addto@macro\xa\htmlize@scrap\xa{\htmlize@remainder@detokenized\@htmlize@stop\@htmlize@stop\@htmlize@stop\htmlize@rdelim@i}%
+          \gdef\htmlize@scrap{\converttohtml@int}%
+          \xa\g@addto@macro\xa\htmlize@scrap\xa{\xa{\htmlize@blockinbraces}}%
+          \g@addto@macro\htmlize@scrap{\g@addto@macro\htmlize@output}%
+          \ifmoodle@clozemode
+            \xa\g@addto@macro\xa\htmlize@scrap\xa{\xa{\otherbackslash\otherrbrace}}%
+          \else
+            \xa\g@addto@macro\xa\htmlize@scrap\xa{\xa{\otherrbrace}}%
+          \fi
+          \g@addto@macro\htmlize@scrap{\htmlize@recursive@i}%
+          \xa\g@addto@macro\xa\htmlize@scrap\xa{\htmlize@remainder@detokenized\@htmlize@stop\@htmlize@stop\@htmlize@stop\htmlize@rdelim@i}%
         % Okay, that's done.  It's stored in a global macro.
         % Now we get it out of this group.
-      \egroup
-      \let\htmlize@next@i=\htmlize@scrap
+        \egroup
+        \let\htmlize@next@i=\htmlize@scrap
+      \fi
     \else
       \ifx\test@i\@otherdollar%
         % Math shift character.
@@ -2555,7 +2752,7 @@
                 \xa\ultradetokenize@to@macro\xa\htmlize@remaining@text\xa{\htmlize@scrap}%
                 \def\htmlize@next@i{\xa\htmlize@recursive@i\htmlize@remaining@text\@htmlize@stop\@htmlize@stop\@htmlize@stop\htmlize@rdelim@i}%
               \else
-                % control sequence to be transcribed to XML.
+                % control sequence to be transcribed to \XML.
                 %\edef\ds{Must pass on \xa\string\@htmlize@cs}\show\ds
                 \g@addto@macro\htmlize@output{#1}%
                 \def\htmlize@next@i{\htmlize@recursive@i#2#3\htmlize@rdelim@i}%
@@ -2564,8 +2761,9 @@
           \fi% \ifx\@htmlize@cs\@@begin@cs
         \else%
           \ifx\test@i\@othertilde%
-            % The ~ becomes non-breaking space &nbsp;
-            \g@addto@macro\htmlize@output{\otherampersand nbsp;}%
+            % The ~ becomes non-breaking space &nbsp; outside of math mode
+            \moodle@ifmathmode{\g@addto@macro\htmlize@output{\@othertilde}}%
+                              {\g@addto@macro\htmlize@output{\otherampersand nbsp;}}%
             \def\htmlize@next@i{\htmlize@recursive@i#2#3\htmlize@rdelim@i}%
           \else
             \ifx\test@i\@lsinglequote%
@@ -2581,26 +2779,25 @@
               \ifx\test@i\@rsinglequote%
                 \ifx\test@ii\@rsinglequote% Double right quote
                   %AAedit 2021.01.06: in math mode, you should write 2 single right quotes, for second derivatives
-                  \moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherampersand rsquo;\otherampersand rsquo;}}%
+                  \moodle@ifmathmode{\g@addto@macro\htmlize@output{''}}%
                                     {\g@addto@macro\htmlize@output{\otherampersand rdquo;}}%
                   \def\htmlize@next@i{\htmlize@recursive@i#3\htmlize@rdelim@i}%
                 \else% Single right quote
-                  \g@addto@macro\htmlize@output{\otherampersand rsquo;}%
+                  \moodle@ifmathmode{\g@addto@macro\htmlize@output{'}}%
+                                    {\g@addto@macro\htmlize@output{\otherampersand rsquo;}}%
                   \def\htmlize@next@i{\htmlize@recursive@i#2#3\htmlize@rdelim@i}%
                 \fi% \ifx\test@ii\@rsinglequote%
               \else
                 \ifx\test@i\@doublequote
-                  \g@addto@macro\htmlize@output{\otherampersand rdquo;}%
+                  \g@addto@macro\htmlize@output{\otherampersand quot;}%
                   \def\htmlize@next@i{\htmlize@recursive@i#2#3\htmlize@rdelim@i}%
                 \else
                   \ifx\test@i\@lt
-                    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherampersand lt;}}%
-                                      {\g@addto@macro\htmlize@output{<}}%
+                    \g@addto@macro\htmlize@output{\otherampersand lt;}
                     \def\htmlize@next@i{\htmlize@recursive@i#2#3\htmlize@rdelim@i}%
                   \else
                     \ifx\test@i\@gt
-                      \moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherampersand gt;}}%
-                                        {\g@addto@macro\htmlize@output{>}}%
+                      \g@addto@macro\htmlize@output{\otherampersand gt;}%
                       \def\htmlize@next@i{\htmlize@recursive@i#2#3\htmlize@rdelim@i}%
                     \else
                       \ifx\test@i\@dash
@@ -2613,9 +2810,19 @@
                           \def\htmlize@next@i{\htmlize@recursive@i#2#3\htmlize@rdelim@i}%
                         \fi
                       \else
-                        % Default case: write first token to output, call self on remaining tokens.
-                        \g@addto@macro\htmlize@output{#1}%
-                        \def\htmlize@next@i{\htmlize@recursive@i#2#3\htmlize@rdelim@i}%
+                        \ifx\test@i\@otherequal
+                          \ifmoodle@clozemode
+                            \moodle@ifmathmode{\g@addto@macro\htmlize@output{=}}%
+                                      {\g@addto@macro\htmlize@output{\otherampersand\otherhash 61;}}%
+                          \else
+                            \g@addto@macro\htmlize@output{=}%
+                          \fi
+                          \def\htmlize@next@i{\htmlize@recursive@i#2#3\htmlize@rdelim@i}%
+                        \else
+                          % Default case: write first token to output, call self on remaining tokens.
+                          \g@addto@macro\htmlize@output{#1}%
+                          \def\htmlize@next@i{\htmlize@recursive@i#2#3\htmlize@rdelim@i}%
+                        \fi% \ifx\test@i\@otherequal
                       \fi% \ifx\test@i\@dash
                     \fi% \ifx\test@i\@gt
                   \fi% \ifx\test@i\@lt
@@ -2636,9 +2843,9 @@
 \edef\inlinemathleftdelim{\otherbackslash(}%
 \def\inlinemathrightdelim#1{\advancemathmodecounter{-1}%
                             \g@addto@macro\htmlize@output{\otherbackslash)}}%
-\edef\displaymathleftdelim{\otherbackslash[}%
+\edef\displaymathleftdelim{<CENTER>\otherbackslash[}%
 \def\displaymathrightdelim#1{\advancemathmodecounter{-1}%
-                             \g@addto@macro\htmlize@output{\otherbackslash]}}%
+                             \g@addto@macro\htmlize@output{\otherbackslash]</CENTER>}}%
 \long\def\htmlize@inlinemath@recursive@i#1#2#3\htmlize@rdelim@i{%
   % inspired by \htmlize@recursive@i
   \def\test@i{#1}%
@@ -2755,7 +2962,7 @@
 }
 
 \def\htmlize@activate@css{}%
-\def\html@action@def#1{%
+\long\def\html@action@def#1{%
   \htmlize@record@action{#1}%
   \xa\def\xa\htmlize@scrap\xa{\xa\let\xa#1\csname html@\string#1\endcsname}%
   \xa\g@addto@macro\xa\htmlize@activate@css\xa{\htmlize@scrap}%
@@ -2780,7 +2987,7 @@
     \xa\htmlize@proceedwiththerest\htmlize@afteraction@hook
   }%
 }
-\def\htmlize@redefine@expansionmacros{}%
+\long\def\htmlize@redefine@expansionmacros{}%
 \long\def\htmlize@record@expand#1{%
   \xa\listadd\xa\htmlize@cs@expandlist\xa{\string#1}%
 }
@@ -2809,7 +3016,11 @@
 \htmlize@record@environment{clozeshortanswer}
 \htmlize@record@environment{shortanswer}
 
-\html@newenvironment{center}{\xdef\htmlize@afteraction@hook{<CENTER>\expandonce\BODY</CENTER>}}%
+\html@newenvironment{center}{\xdef\htmlize@afteraction@hook{\noexpand\HTMLtag{CENTER}\expandonce\BODY\noexpand\HTMLtag{/CENTER}}}%
+
+\html@newenvironment{quote}{\xdef\htmlize@afteraction@hook{\noexpand\HTMLtag{BLOCKQUOTE}\expandonce\BODY\noexpand\HTMLtag{/BLOCKQUOTE}}}%
+
+\html@newenvironment{quotation}{\xdef\htmlize@afteraction@hook{\noexpand\HTMLtag{BLOCKQUOTE}\expandonce\BODY\noexpand\HTMLtag{/BLOCKQUOTE}}}%
 
 \def\moodle@save@getitems@state{%
   \global\xa\xdef\csname moodle@currentitemnumber@level@\the\moodle@listdepth\xa\endcsname\xa{\thecurrentitemnumber}%
@@ -2822,13 +3033,13 @@
   \moodle@restoreitems{\thenumgathereditems}%
 }%
 \def\moodle@saveitems#1{%
-  \ifnum#1>0%
+  \ifnum#1>0\relax
     \global\csletcs{moodle@level@\the\moodle@listdepth @item@#1}{getitems@item@#1}%
     \xa\moodle@saveitems\xa{\number\numexpr#1-1\expandafter}%
   \fi
 }%
 \def\moodle@restoreitems#1{%
-  \ifnum#1>0%
+  \ifnum#1>0\relax
     \global\csletcs{getitems@item@#1}{moodle@level@\the\moodle@listdepth @item@#1}%
     \global\xa\let\csname moodle@level@\the\moodle@listdepth @item@#1\endcsname=\@undefined
     \xa\moodle@restoreitems\xa{\number\numexpr#1-1\expandafter}%
@@ -2839,9 +3050,9 @@
     \advance\moodle@listdepth by 1\relax
     \moodle@save@getitems@state%
       \xa\gatheritems\xa{\BODY}%
-      \gdef\htmlize@afteraction@hook{<#2>}%
+      \gdef\htmlize@afteraction@hook{\HTMLtag{#2}}%
       \loopthroughitemswithcommand{\moodle@itemtoLI}%
-      \g@addto@macro\htmlize@afteraction@hook{</#2>}%
+      \g@addto@macro\htmlize@afteraction@hook{\HTMLtag{/#2}}%
     \moodle@restore@getitems@state%
     \advance\moodle@listdepth by -1\relax
   }%
@@ -2851,9 +3062,9 @@
 \moodle@makelistenv{itemize}{UL}%
 
 \def\moodle@itemtoLI#1{%
-  \g@addto@macro\htmlize@afteraction@hook{<LI>#1}%
+  \g@addto@macro\htmlize@afteraction@hook{\HTMLtag{LI}#1}%
   \trim@spaces@in\htmlize@afteraction@hook%
-  \g@addto@macro\htmlize@afteraction@hook{</LI>}%
+  \g@addto@macro\htmlize@afteraction@hook{\HTMLtag{/LI}}%
 }%
 
 \def\advancemathmodecounter#1{%
@@ -2870,26 +3081,34 @@
 \htmlize@record@action{\endclozemode}%
 \htmlize@record@action{\relax}%
 
-\html@action@def\%{\g@addto@macro\htmlize@output{\otherpercent}}%
+\html@action@def\HTMLtag#1{%
+    \xa\g@addto@macro\xa\htmlize@output\xa{<#1>}%
+  }%
+\html@action@def\%{%
+    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherbackslash\otherpercent}}%
+                      {\g@addto@macro\htmlize@output{\otherpercent}}%
+  }%
 \html@action@def\#{\g@addto@macro\htmlize@output{\otherhash}}%
 \html@action@def\&{\g@addto@macro\htmlize@output{\otherampersand}}%
-\html@action@def\\{\moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherbackslash\otherbackslash}}%
-                                     {\g@addto@macro\htmlize@output{<BR/>}}}%
+\html@action@def\\{%
+    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherbackslash\otherbackslash}}%
+                      {\g@addto@macro\htmlize@output{<BR/>}}
+  }%
 \html@action@def\{{%
     \moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherbackslash\otherlbrace}}%
                       {\g@addto@macro\htmlize@output{\otherlbrace}}%
   }%
 \html@action@def\}{%
     \moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherbackslash\otherrbrace}}%
-                      {\ifmoodle@clozemode\g@addto@macro\htmlize@output{\otherbackslash}\fi
-                       \g@addto@macro\htmlize@output{\otherrbrace}}%
+       {\ifmoodle@clozemode\g@addto@macro\htmlize@output{\otherbackslash\otherrbrace}%
+                           \else\g@addto@macro\htmlize@output{\otherrbrace}\fi}%
   }%
 \html@action@def\[{%
     \advancemathmodecounter{1}
-    \g@addto@macro\htmlize@output{\otherbackslash\otherlbracket}%
+    \g@addto@macro\htmlize@output{<CENTER>\otherbackslash\otherlbracket}%
   }%
 \html@action@def\]{%
-    \g@addto@macro\htmlize@output{\otherbackslash\otherrbracket}%
+    \g@addto@macro\htmlize@output{\otherbackslash\otherrbracket</CENTER>}%
     \advancemathmodecounter{-1}
   }%
 \html@action@def\({%
@@ -2912,14 +3131,63 @@
     \moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherbackslash\otherspace}}%
                       {\g@addto@macro\htmlize@output{\otherspace}}%
   }%
+\html@action@def\,{%
+    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\string\,}}%
+                      {\g@addto@macro\htmlize@output{\otherampersand\otherhash 8239\othersemicol}}%
+  }%
+\html@action@def\thinspace{%
+    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\string\thinspace\otherspace}}%
+                      {\g@addto@macro\htmlize@output{\otherampersand\otherhash 8239\othersemicol}}%
+  }%
+\html@action@def\>{%
+    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherbackslash\otherampersand gt;}}%
+                      {\g@addto@macro\htmlize@output{\otherampersand emsp14\othersemicol}}%
+  }%
+\html@action@def\:{%
+    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\string\:}}%
+                      {\g@addto@macro\htmlize@output{\otherampersand emsp14\othersemicol}}%
+  }%
+\html@action@def\medspace{%
+    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\string\:}}%
+                      {\g@addto@macro\htmlize@output{\otherampersand emsp14\othersemicol}}%
+  }%
+\html@action@def\;{%
+    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherbackslash\othersemicol}}%
+                      {\g@addto@macro\htmlize@output{\otherampersand emsp13\othersemicol}}%
+  }%
+\html@action@def\thickspace{%
+    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\otherbackslash\othersemicol}}%
+                      {\g@addto@macro\htmlize@output{\otherampersand emsp13\othersemicol}}%
+  }%
+\html@action@def\enspace{%
+    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\string\enspace\otherspace}}%
+                      {\g@addto@macro\htmlize@output{\otherampersand ensp\othersemicol}}%
+  }%
+\html@action@def\quad{%
+    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\string\quad\otherspace}}%
+                      {\g@addto@macro\htmlize@output{\otherampersand emsp\othersemicol}}%
+  }%
+\html@action@def\qquad{%
+    \moodle@ifmathmode{\g@addto@macro\htmlize@output{\string\qquad\otherspace}}%
+                      {\g@addto@macro\htmlize@output{\otherampersand emsp\othersemicol\otherampersand emsp\othersemicol}}%
+  }%
 \html@action@def\${%
      \g@addto@macro\htmlize@output{\otherdollar}%
+  }%
+\html@action@def\textquotesingle{%
+     \g@addto@macro\htmlize@output{'}%
   }%
 \html@action@def\@dquote{%
      \g@addto@macro\htmlize@output{"}%
   }%
+\html@action@def\textquotedbl{%
+     \g@addto@macro\htmlize@output{"}%
+  }%
 \html@action@def\clozetilde{%
     \xa\g@addto@macro\xa\htmlize@output\xa{\othertilde}%
+  }%
+\html@action@def\clozecorrect{%
+    \xa\g@addto@macro\xa\htmlize@output\xa{\otherequal}%
   }%
 \html@action@def\clozelbrace{%
     \openclozemode
@@ -2930,16 +3198,16 @@
     \endclozemode
   }%
 \html@action@def\TeX{%
-    \g@addto@macro\htmlize@output{\otherbackslash(\otherbackslash rm\otherbackslash TeX\otherbackslash)}
+    \g@addto@macro\htmlize@output{\otherbackslash(\otherbackslash rm\otherbackslash TeX\otherbackslash)}%
   }%
 \html@action@def\LaTeX{%
-    \g@addto@macro\htmlize@output{\otherbackslash(\otherbackslash rm\otherbackslash LaTeX\otherbackslash)}
+    \g@addto@macro\htmlize@output{\otherbackslash(\otherbackslash rm\otherbackslash LaTeX\otherbackslash)}%
   }%
 
 {\catcode`;=12\relax\gdef\othersemicol{;}}
 
 {\catcode`|=3\relax
- \gdef\htmlize@vowels{a|e|i|o|u|A|E|I|O|U|}}
+ \gdef\htmlize@vowels{a|e|i|o|u|A|E|I|O|U|}}%
 \def\htmlize@define@diacritic#1#2{%
   \htmlize@record@action{#1}%
   \g@addto@macro\htmlize@activate@css{%
@@ -2955,7 +3223,7 @@
 \htmlize@define@diacritic{\`}{grave}%
 
 {\catcode`|=3\relax
- \gdef\htmlize@diaeresis{a|e|i|o|u|y|A|E|I|O|U|Y|}}
+ \gdef\htmlize@diaeresis{a|e|i|o|u|y|A|E|I|O|U|Y|}}%
 \html@action@def\"#1{%
     \ifinlist{#1}{\htmlize@diaeresis}%
       {\g@addto@macro\htmlize@output{\otherampersand#1uml\othersemicol}}%
@@ -2978,7 +3246,7 @@
           \ifx\test@i\@u
             \def\toadd{\otherampersand\otherhash369\othersemicol}%
           \else
-            \def\toadd{\otherbackslash\otherlbrace#1\otherrbrace}%
+            \def\toadd{\otherbackslash H\otherlbrace#1\otherrbrace}%
           \fi
         \fi
       \fi
@@ -2989,39 +3257,39 @@
 
 \def\@c{c}\def\@C{C}\def\@s{s}\def\@S{S}\def\@t{t}\def\@T{T}%
 \html@action@def\c#1{%
-\bgroup
-  \def\test@i{#1}%
-  \ifx\test@i\@c
-    \def\toadd{\otherampersand ccedil\othersemicol}%
-  \else
-    \ifx\test@i\@C
-      \def\toadd{\otherampersand Ccedil\othersemicol}%
+  \bgroup
+    \def\test@i{#1}%
+    \ifx\test@i\@c
+      \def\toadd{\otherampersand ccedil\othersemicol}%
     \else
-      \ifx\test@i\@s
-        \def\toadd{\otherampersand\otherhash351\othersemicol}%
+      \ifx\test@i\@C
+        \def\toadd{\otherampersand Ccedil\othersemicol}%
       \else
-        \ifx\test@i\@S
-          \def\toadd{\otherampersand\otherhash350\othersemicol}%
+        \ifx\test@i\@s
+          \def\toadd{\otherampersand\otherhash351\othersemicol}%
         \else
-          \ifx\test@i\@t
-            \def\toadd{\otherampersand\otherhash355\othersemicol}%
+          \ifx\test@i\@S
+            \def\toadd{\otherampersand\otherhash350\othersemicol}%
           \else
-            \ifx\test@i\@T
-              \def\toadd{\otherampersand\otherhash354\othersemicol}%
+            \ifx\test@i\@t
+              \def\toadd{\otherampersand\otherhash355\othersemicol}%
             \else
-              \def\toadd{\otherbackslash\otherlbrace#1\otherrbrace}%
+              \ifx\test@i\@T
+                \def\toadd{\otherampersand\otherhash354\othersemicol}%
+              \else
+                \def\toadd{\otherbackslash c\otherlbrace#1\otherrbrace}%
+              \fi
             \fi
           \fi
         \fi
       \fi
     \fi
-  \fi
-  \xa\g@addto@macro\xa\htmlize@output\xa{\toadd}%
-\egroup
+    \xa\g@addto@macro\xa\htmlize@output\xa{\toadd}%
+  \egroup
 }%
 
 {\catcode`|=3\relax
- \gdef\htmlize@tilde{A|N|O|a|n|o|}}
+ \gdef\htmlize@tilde{A|N|O|a|n|o|}}%
 \html@action@def\~#1{%
     \ifinlist{#1}{\htmlize@tilde}%
       {\g@addto@macro\htmlize@output{\otherampersand#1tilde\othersemicol}}%
@@ -3029,12 +3297,12 @@
 }%
 
 {\catcode`|=3\relax
- \gdef\htmlize@breve{A|G|U|a|g|u|}}
+ \gdef\htmlize@breve{A|G|U|a|g|u|}}%
 \def\@e{e}\def\@E{E}\def\@i{i}\def\@ii{\i}\def\@I{I}\def\@o{o}\def\@O{O}%
 \html@action@def\u#1{%
   \ifinlist{#1}{\htmlize@breve}%
      {\g@addto@macro\htmlize@output{\otherampersand#1breve\othersemicol}}%
-     {
+     {%
       \bgroup
         \def\test@i{#1}%
         \ifx\test@i\@E
@@ -3058,7 +3326,7 @@
                     \ifx\test@i\@o
                       \def\toadd{\otherampersand\otherhash335\othersemicol}%
                     \else
-                      \def\toadd{\otherbackslash\otherlbrace#1\otherrbrace}%
+                      \def\toadd{\otherbackslash u\otherlbrace#1\otherrbrace}%
                     \fi
                   \fi
                 \fi
@@ -3072,7 +3340,7 @@
 }%
 
 {\catcode`|=3\relax
- \gdef\htmlize@caron{C|D|E|L|N|R|S|T|Z|c|d|e|l|n|r|s|t|z|}}
+ \gdef\htmlize@caron{C|D|E|L|N|R|S|T|Z|c|d|e|l|n|r|s|t|z|}}%
 \html@action@def\v#1{%
     \ifinlist{#1}{\htmlize@caron}%
       {\g@addto@macro\htmlize@output{\otherampersand#1caron\othersemicol}}%
@@ -3080,11 +3348,11 @@
 }%
 
 {\catcode`|=3\relax
- \gdef\htmlize@ogonek{A|E|I|U|a|e|i|u|}}
+ \gdef\htmlize@ogonek{A|E|I|U|a|e|i|u|}}%
 \html@action@def\k#1{%
   \ifinlist{#1}{\htmlize@ogonek}%
     {\g@addto@macro\htmlize@output{\otherampersand#1ogon\othersemicol}}%
-    {
+    {%
       \bgroup
         \def\test@i{#1}%
         \ifx\test@i\@O
@@ -3093,76 +3361,255 @@
           \ifx\test@i\@o
             \def\toadd{\otherampersand\otherhash491\othersemicol}%
           \else
-            \def\toadd{\otherbackslash\otherlbrace#1\otherrbrace}%
+            \def\toadd{\otherbackslash k\otherlbrace#1\otherrbrace}%
           \fi
         \fi
         \xa\g@addto@macro\xa\htmlize@output\xa{\toadd}%
       \egroup
     }%
 }%
-\html@def\underline#1{<SPAN STYLE=\@dquote text-decoration: underline;\@dquote>#1</SPAN>}%
-\html@def\emph#1{<EM>#1</EM>}%
-\html@def\textit#1{<I>#1</I>}%
-\html@def\textbf#1{<B>#1</B>}%
-\html@def\texttt#1{<CODE>#1</CODE>}%
-\html@def\textsc#1{<SPAN STYLE=\@dquote font-variant: small-caps;\@dquote>#1</SPAN>}%
-\html@def\url#1{<A href=\@dquote #1\@dquote>#1</A>}%
-\html@def\href#1#2{<A href=\@dquote #1\@dquote>#2</A>}%
-\html@def\textsuperscript#1{<SUP>#1</SUP>}%
-\html@def\up#1{<SUP>#1</SUP>}%
-\html@def\fup#1{<SUP>#1</SUP>}%
-\html@def\textsubscript#1{<SUB>#1</SUB>}%
+
+{\catcode`|=3\relax
+ \gdef\htmlize@macron{A|E|I|O|U|a|e|i|o|u|}}%
+\def\@g{g}\def\@G{G}\def\@y{y}\def\@Y{Y}%
+\html@action@def\=#1{%
+  \ifinlist{#1}{\htmlize@macron}%
+    {\g@addto@macro\htmlize@output{\otherampersand#1macr\othersemicol}}%
+    {%
+      \bgroup
+        \def\test@i{#1}%
+        \ifx\test@i\@g
+          \def\toadd{\otherampersand\otherhash7713\othersemicol}%
+        \else
+          \ifx\test@i\@G
+            \def\toadd{\otherampersand\otherhash7712\othersemicol}%
+          \else
+            \ifx\test@i\@y
+              \def\toadd{\otherampersand\otherhash563\othersemicol}%
+            \else
+              \ifx\test@i\@Y
+                \def\toadd{\otherampersand\otherhash562\othersemicol}%
+              \else
+                \def\toadd{\otherbackslash =\otherlbrace#1\otherrbrace}%
+              \fi
+            \fi
+          \fi
+        \fi
+        \xa\g@addto@macro\xa\htmlize@output\xa{\toadd}%
+      \egroup
+    }%
+}%
+
+\def\@b{b}\def\@B{B}\def\@d{d}\def\@D{D}\def\@k{k}\def\@K{K}\def\@l{l}%
+\def\@L{L}\def\@n{n}\def\@N{N}\def\@t{t}\def\@T{T}\def\@z{z}\def\@Z{Z}%
+\html@action@def\b#1{%
+  \bgroup
+    \def\test@i{#1}%
+    \ifx\test@i\@b
+      \def\toadd{\otherampersand\otherhash7687\othersemicol}%
+    \else
+      \ifx\test@i\@B
+        \def\toadd{\otherampersand\otherhash7686\othersemicol}%
+      \else
+        \ifx\test@i\@d
+          \def\toadd{\otherampersand\otherhash7695\othersemicol}%
+        \else
+          \ifx\test@i\@D
+            \def\toadd{\otherampersand\otherhash7694\othersemicol}%
+          \else
+            \ifx\test@i\@k
+              \def\toadd{\otherampersand\otherhash7733\othersemicol}%
+            \else
+              \ifx\test@i\@K
+                \def\toadd{\otherampersand\otherhash7732\othersemicol}%
+              \else
+                \ifx\test@i\@l
+                  \def\toadd{\otherampersand\otherhash7739\othersemicol}%
+                \else
+                  \ifx\test@i\@L
+                    \def\toadd{\otherampersand\otherhash7738\othersemicol}%
+                  \else
+                    \ifx\test@i\@n
+                      \def\toadd{\otherampersand\otherhash7753\othersemicol}%
+                    \else
+                      \ifx\test@i\@N
+                        \def\toadd{\otherampersand\otherhash7752\othersemicol}%
+                      \else
+                        \ifx\test@i\@r
+                          \def\toadd{\otherampersand\otherhash7775\othersemicol}%
+                        \else
+                          \ifx\test@i\@R
+                            \def\toadd{\otherampersand\otherhash7774\othersemicol}%
+                          \else
+                            \ifx\test@i\@t
+                              \def\toadd{\otherampersand\otherhash7791\othersemicol}%
+                            \else
+                              \ifx\test@i\@T
+                                \def\toadd{\otherampersand\otherhash7790\othersemicol}%
+                              \else
+                                \ifx\test@i\@z
+                                  \def\toadd{\otherampersand\otherhash7829\othersemicol}%
+                                \else
+                                  \ifx\test@i\@Z
+                                    \def\toadd{\otherampersand\otherhash7828\othersemicol}%
+                                  \else
+                                    \def\toadd{\otherbackslash b\otherlbrace#1\otherrbrace}%
+                                  \fi
+                                \fi
+                              \fi
+                            \fi
+                          \fi
+                        \fi
+                      \fi
+                    \fi
+                  \fi
+                \fi
+              \fi
+            \fi
+          \fi
+        \fi
+      \fi
+    \fi
+    \xa\g@addto@macro\xa\htmlize@output\xa{\toadd}%
+  \egroup
+}%
+
+{\catcode`|=3\relax
+ \gdef\htmlize@dotabove{C|E|G|I|Z|c|e|g|z|}}%
+\def\@i{i}%
+\html@action@def\.#1{%
+  \ifinlist{#1}{\htmlize@dotabove}%
+    {\g@addto@macro\htmlize@output{\otherampersand#1dot\othersemicol}}%
+    {
+      \bgroup
+        \def\test@i{#1}%
+        \ifx\test@i\@i
+          \def\toadd{i}%
+        \else
+          \def\toadd{\otherbackslash .\otherlbrace#1\otherrbrace}%
+        \fi
+        \xa\g@addto@macro\xa\htmlize@output\xa{\toadd}%
+      \egroup
+    }%
+}%
+
+\def\@A{A}\def\@a{a}\def\@B{B}\def\@b{b}%
+\html@action@def\d#1{%
+  \bgroup
+    \def\test@i{#1}%
+    \ifx\test@i\@a
+      \def\toadd{\otherampersand\otherhash7841\othersemicol}%
+    \else
+      \ifx\test@i\@A
+        \def\toadd{\otherampersand\otherhash7840\othersemicol}%
+      \else
+        \ifx\test@i\@b
+          \def\toadd{\otherampersand\otherhash7685\othersemicol}%
+        \else
+          \ifx\test@i\@B
+            \def\toadd{\otherampersand\otherhash7684\othersemicol}%
+          \else
+            \def\toadd{\otherbackslash d\otherlbrace#1\otherrbrace}%
+          \fi
+        \fi
+      \fi
+    \fi
+    \xa\g@addto@macro\xa\htmlize@output\xa{\toadd}%
+  \egroup
+}%
+
+{\catcode`|=3\relax
+ \gdef\htmlize@ring{A|U|a|u|}}%
+\html@action@def\r#1{%
+    \ifinlist{#1}{\htmlize@ring}%
+      {\g@addto@macro\htmlize@output{\otherampersand#1ring\othersemicol}}%
+      {\xa\g@addto@macro\htmlize@output\xa{\string\r#1}}%
+}%
+\def\blank{\rule{1in}{0.5pt}}%
 \html@def\blank{____________}%
-\html@def\par{<BR/>}%
+\htmlize@record@action\inlinemathrightdelim
+\htmlize@record@action\displaymathrightdelim
+\html@def\emph#1{\HTMLtag{EM}#1\HTMLtag{/EM}}%
+\html@def\textbf#1{\HTMLtag{B}#1\HTMLtag{/B}}%
+\html@def\textit#1{\HTMLtag{I}#1\HTMLtag{/I}}%
+\html@def\textsc#1{\HTMLtag{SPAN STYLE="font-variant: small-caps;"}#1\HTMLtag{/SPAN}}%
+\html@def\textsuperscript#1{\HTMLtag{SUP}#1\HTMLtag{/SUP}}%
+\html@def\textsubscript#1{\HTMLtag{SUB}#1\HTMLtag{/SUB}}%
+\html@def\texttt#1{\HTMLtag{CODE}#1\HTMLtag{/CODE}}%
+\html@action@def\underline#1{%
+  \moodle@ifmathmode{\g@addto@macro\htmlize@output{\string\underline{#1}}}%
+                    {\g@addto@macro\htmlize@output{<SPAN STYLE="text-decoration: underline;">#1</SPAN>}}%
+}%
+\html@def\url#1{\HTMLtag{A href=\@dq #1\@dq}#1\HTMLtag{/A}}% url or hyperref
+\html@def\href#1#2{\HTMLtag{A href=\@dq #1\@dq}#2\HTMLtag{/A}}% hyperref
+\html@def\up#1{\HTMLtag{SUP}#1\HTMLtag{/SUP}}% \pkg{babel}, option \optn{french}
+\html@def\fup#1{\HTMLtag{SUP}#1\HTMLtag{/SUP}}% \pkg{babel}, option \optn{french}
 \html@def\aa{\&aring;}%
 \html@def\AA{\&Aring;}%
 \html@def\ae{\&aelig;}%
 \html@def\AE{\&AElig;}%
-\html@def\oe{\&oelig;}%
-\html@def\OE{\&OElig;}%
-\html@def\S{\&sect;}%
-\html@def\euro{\&euro;}%
-\html@def\texteuro{\&euro;}%
-\html@def\o{\&oslash;}%
-\html@def\O{\&Oslash;}%
-\html@def\ss{\&szlig;}%
-\html@def\SS{\&\#7838;}%
+\html@def\dh{\&eth;}%
+\html@def\DH{\&ETH;}%
+\html@def\dj{\&dstrok;}%
+\html@def\DJ{\&Dstrok;}%
+\html@def\i{\&imath;}%
+\html@def\ij{\&ijlig;}%
+\html@def\IJ{\&IJlig;}%
+\html@def\j{\&jmath;}%
 \html@def\l{\&lstrok;}%
 \html@def\L{\&Lstrok;}%
-\html@def\og{\&laquo;\&\#8239;}%
-\html@def\guillemotleft{\&laquo;\&\#8239;}%
-\html@def\fg{\&\#8239;\&raquo;}%
-\html@def\guillemotright{\&\#8239;\&raquo;}%
-\html@def\glqq{\&bdquo;}%
-\html@def\grqq{\&ldquo;}%
-\html@def\glq{\&sbquo;}%
-\html@def\grq{\&lsquo;}%
-\html@def\flqq{\&laquo;\&\#8239;}%
-\html@def\frqq{\&\#8239;\&raquo;}%
-\html@def\flq{\&lsaquo;}%
-\html@def\frq{\&rsaquo;}%
-\html@def\dq{\&quot;}%
-\html@def\,{\&\#8239;}%
-\html@def\thinspace{\&\#8239;}%
+\html@def\ng{\&eng;}%
+\html@def\NG{\&ENG;}%
+\html@def\o{\&oslash;}%
+\html@def\O{\&Oslash;}%
+\html@def\oe{\&oelig;}%
+\html@def\OE{\&OElig;}%
+\html@def\ss{\&szlig;}%
+\html@def\SS{\&\#7838;}%
+\html@def\th{\&thorn;}%
+\html@def\TH{\&THORN;}%
+\html@def\space{ }%
+\html@def\textvisiblespace{\&blank;}%
+\html@def\newline{\HTMLtag{BR/}}%
+\html@def\par{\HTMLtag{BR/}}%
 \html@def\textbackslash{\&\#92;}%
 \html@def\_{\&\#95;}%
 \html@def\textquestiondown{\&iquest;}%
 \html@def\textexclamdown{\&iexcl;}%
-
-
-\htmlize@record@action\inlinemathrightdelim
-\htmlize@record@action\displaymathrightdelim
-
+\html@def\euro{\&euro;}%
+\html@def\texteuro{\&euro;}%
+\html@def\S{\&sect;}%
+\html@def\textquoteleft{\&lsquo;}%
+\html@def\textquoteright{\&rsquo;}%
+\html@def\textquotedblleft{\&ldquo;}%
+\html@def\textquotedblright{\&rdquo;}%
+\html@def\guilsinglleft{\&lsaquo;}%
+\html@def\guilsinglright{\&rsaquo;}%
+\html@def\guillemotleft{\&laquo;}%
+\html@def\guillemotright{\&raquo;}%
+\html@def\quotesinglbase{\&sbquo;}%
+\html@def\quotedblbase{\&bdquo;}%
+\html@def\flq{\&lsaquo;}%
+\html@def\frq{\&rsaquo;}%
+\html@def\flqq{\&laquo;}%
+\html@def\frqq{\&raquo;}%
+\html@def\og{\&laquo;\&\#8239;}%
+\html@def\fg{\&\#8239;\&raquo;}%
+\html@def\glq{\&sbquo;}%
+\html@def\grq{\&lsquo;}%
+\html@def\glqq{\&bdquo;}%
+\html@def\grqq{\&ldquo;}%
+\html@def\dq{\&quot;}%
 \newcommand\htmlonly[2][]{#1}%
 \html@action@newcommand{htmlonly}[2][]{%
   \g@addto@macro\htmlize@output{#2}%
 }%
 \AtEndPreamble{%
   \@ifpackageloaded{graphics}{%
-    \@ifpackagelater{graphics}{2019/10/08}{}{%
-      \PackageError{moodle}{`moodle' is made to interact with the `graphics'
-                           package not older than 2019/10/08.}%
-    }%
+    \@ifpackagelater{graphics}{2019/10/08 v1.3c}{}%
+    {\PackageError{moodle}{`moodle' is made to interact with the `graphics'\MessageBreak
+                           package not older than 2019/10/08.}\@eha\endinput}%
+
   }{}%
 }%
 \def\moodle@media@find#1{%
@@ -3220,7 +3667,7 @@
       % begin modified part
        \xdef\moodle@media@base{\detokenize\xa{\Gin@base}}%
        \xdef\moodle@media@ext{\detokenize\xa{\Gin@ext}}%
-      % end modfied part
+      % end modified part
     \fi
   \endgroup
 }
@@ -3277,25 +3724,36 @@
 \def\SVGtoPDFcommand{\htmlize@setexecutable\SVGtoPDF}%
 \def\optiSVGcommand{\htmlize@setexecutable\optiSVG}%
 \def\DeleteFilecommand{\htmlize@setexecutable\DeleteFiles}%
+\def\MoveFilecommand{\htmlize@setexecutable\MoveFiles}%
+\def\DevNullcommand{\htmlize@setexecutable\DevNull}%
 
 \ifwindows%
   \ghostscriptcommand{gswin64c.exe -dBATCH -dNOPAUSE -sDEVICE=pngalpha}%
   \baselxivcommand{certutil}%
+  % Uses scour from inkscape default installation
+  % The \Inkscape\bin  directory has to be in the users path and provides both:
+  % {inkscape,python}.exe the scour-Package which is found by python in Inkscape\lib\python3.x\site-packages\
+  \optiSVGcommand{python -m scour.scour -q --enable-id-stripping --enable-comment-stripping
+                --shorten-ids --indent=none --remove-descriptive-elements}%
   \DeleteFilecommand{del}%
+  \MoveFilecommand{move}%
+  \DevNullcommand{NUL}%
+  \imagemagickcommand{magick -colorspace RGB}%
 \else%
   \ghostscriptcommand{gs -dBATCH -dNOPAUSE -sDEVICE=pngalpha}%
   \baselxivcommand{base64}%
+  \optiSVGcommand{scour -q --enable-id-stripping --enable-comment-stripping
+                --shorten-ids --indent=none --remove-descriptive-elements}%
   \DeleteFilecommand{rm -f}%
+  \MoveFilecommand{mv}%
+  \DevNullcommand{/dev/null}%
+  \imagemagickcommand{convert -colorspace RGB}%
 \fi%
-
-\imagemagickcommand{convert -colorspace RGB}%
 \optipngcommand{optipng -clobber -strip all -quiet}%
 \PDFtoSVGcommand{inkscape --export-type=svg --export-area-page --vacuum-defs}%--pdf-poppler
 \SVGtoPDFcommand{inkscape --export-type=pdf --export-area-page}%
-\optiSVGcommand{scour -q --enable-id-stripping --enable-comment-stripping
-                --shorten-ids --indent=none --remove-descriptive-elements}%
 \AtEndPreamble{%
-  \@ifpackageloaded{graphicx}{%
+  \@ifpackageloaded{graphics}{%
     \def\@firstofthree#1#2#3{#1}%
     \def\@secondofthree#1#2#3{#2}%
     \newcommand{\DeclareGraphicsAlien}[3]{%
@@ -3315,7 +3773,7 @@
         \csname Gread@\targetfmt\endcsname{\Gin@base\targetext}%
       }%
     }%
-    \DeclareGraphicsAlien{.gif}{.png}{\htmlize@imagemagick@convert\otherspace '\SourceFile[0]' \OutputFile}%
+    \DeclareGraphicsAlien{.gif}{.png}{\htmlize@imagemagick@convert\otherspace \SourceFile[0]\otherspace \OutputFile}%
   }{
     \newcommand\includegraphics[2][]{\PackageError{moodle}{"\string\includegraphics" is not defined}%
                                           {Add "\string\usepackage{graphicx}" to you preamble.}}{}%}%
@@ -3346,9 +3804,9 @@
 \ifmoodle@svg
   \AtEndPreamble{%
     \DeclareGraphicsAlien{.svg}{.pdf}{%
-      \SVGtoPDF\otherspace '\SourceFile' -o '\OutputFile' 2>/dev/null}%
+      \SVGtoPDF\otherspace \SourceFile\otherspace -o \otherspace\OutputFile\otherspace 2>\DevNull}%
     \DeclareGraphicsAlien{.SVG}{.pdf}{%
-      \SVGtoPDF\otherspace '\SourceFile' -o '\OutputFile' 2>/dev/null}%
+      \SVGtoPDF\otherspace \SourceFile\otherspace -o \otherspace\OutputFile\otherspace 2>\DevNull}%
   }%
 \fi
 \def\moodle@checkconversionsuccess#1#2{%
@@ -3418,24 +3876,24 @@
       % conversion needed
       \edef\moodle@media@pdf{\detokenize{.pdf}}%
       \edef\moodle@media@ext{\detokenize\xa{\moodle@media@ext}}%
-      \ifnum0\ifx\moodle@media@ext\moodle@media@pdf1\fi\ifmoodle@svg1\fi=11% PDF file and SVG option active
-        \def\moodle@media@ext@current{.svg}%
+      \ifnum0\ifx\moodle@media@ext\moodle@media@pdf1\fi\ifmoodle@svg1\fi=11\relax% PDF file and \SVG\ option active
+        \def\moodle@media@ext@current{-moodle.svg}%
         \edef\moodle@media@mime@current{\moodle@media@SVGmime}%
-        \edef\cmdline{\PDFtoSVG\otherspace "\moodle@media@base\moodle@media@ext" -o "\moodle@media@base\moodle@media@ext@current" 2>/dev/null}%
+        \edef\cmdline{\PDFtoSVG\otherspace "\moodle@media@base\moodle@media@ext" -o "\moodle@media@base\moodle@media@ext@current" 2>\DevNull}%
         \message{moodle.sty:   Converting '#2' to SVG...^^J}%
         \xa\ShellEscape\xa{\cmdline}%
         \moodle@checkconversionsuccess{\moodle@media@base\moodle@media@ext@current}{PDFtoSVG conversion}%
         %Next, optimize inline
         \ifwindows\else
           \edef\cmdline{\optiSVG < "\moodle@media@base\moodle@media@ext@current" >
-           "\moodle@media@base.tmp.svg" && mv "\moodle@media@base.tmp.svg"
+           "\moodle@media@base.tmp.svg" && \MoveFiles\otherspace "\moodle@media@base.tmp.svg"
            "\moodle@media@base\moodle@media@ext@current"}%
           \message{moodle.sty:   Optimizing '\moodle@media@base\moodle@media@ext@current'...^^J}%
           \xa\ShellEscape\xa{\cmdline}%
           \moodle@checkconversionsuccess{\moodle@media@base\moodle@media@ext@current}{SVG optimization}%
         \fi
       \else% call ImageMagick
-        \def\moodle@media@ext@current{.png}%
+        \def\moodle@media@ext@current{-moodle.png}%
         \def\moodle@media@mime@current{image/png}%
         \edef\cmdline{\htmlize@imagemagick@convert\otherspace "\moodle@media@base\moodle@media@ext" -resize \moodle@graphics@geometry\otherspace "\moodle@media@base\moodle@media@ext@current"}%
         \message{moodle.sty:   Converting '#2' to PNG...^^J}%
@@ -3453,17 +3911,42 @@
     %Now, save that base64 encoding in a TeX macro
     \def\moodle@newpic@baselxiv{}%
     \message{moodle.sty:   Reading base64 file '\moodle@media@base.enc'...^^J}%
-    \openin\baseLXIVdatafile="\moodle@media@base.enc"
+    \openin\baseLXIVdatafile="\moodle@media@base.enc"\relax
+    \ifeof\baseLXIVdatafile
+      \PackageError{moodle}{reading '\moodle@media@base.enc' failed}%
+        {If the XML file is not of importance to you: use package option "draft"}%
+    \else
       \savebaselxivdata@recursive
+    \fi
     \closein\baseLXIVdatafile
     %Clean up files
     \ifx\moodle@media@ext@current\moodle@media@ext
-      \ShellEscape{\DeleteFiles\otherspace "\moodle@media@base.enc"}%
+      \ifwindows
+        \ShellEscape{powershell.exe "del ""\moodle@media@base.enc"""}%
+      \else
+        \ShellEscape{\DeleteFiles\otherspace "\moodle@media@base.enc"}%
+      \fi
     \else
-      \ShellEscape{\DeleteFiles\otherspace "\moodle@media@base.enc" "\moodle@media@base\moodle@media@ext@current"}%
+      \ifwindows
+        \ShellEscape{powershell.exe "del ""\moodle@media@base.enc"""}%
+        \ShellEscape{powershell.exe "del ""\moodle@media@base\moodle@media@ext@current"""}%
+      \else
+        \ShellEscape{\DeleteFiles\otherspace "\moodle@media@base.enc" "\moodle@media@base\moodle@media@ext@current"}%
+      \fi
     \fi
     \xa\global\xa\let\csname picbaselxiv@graphics@#2\endcsname=\moodle@newpic@baselxiv%
-    \edef\htmlize@imagetag{<IMG \moodle@graphics@htmlgeometry\otherspace SRC="data:\moodle@media@mime@current;base64,\csname picbaselxiv@graphics@#2\endcsname">}%
+    \ifmoodle@pluginfile
+      \edef\htmlize@imagetag{<IMG \moodle@graphics@htmlgeometry\otherspace SRC="@@PLUGINFILE@@/\moodle@media@base\moodle@media@ext@current">}%
+      \xa\filename@parse\xa{\moodle@media@base}%
+      \xdef\moodle@media@path{\filename@area}%
+      \xdef\moodle@media@base{\filename@base}%
+      \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{<file name="\moodle@media@base}%
+      \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{\moodle@media@ext@current"}
+      \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{ path="/\moodle@media@path" encoding="base64">}%
+      \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{\csname picbaselxiv@graphics@#2\endcsname</file>}%
+    \else
+      \edef\htmlize@imagetag{<IMG \moodle@graphics@htmlgeometry\otherspace SRC="data:\moodle@media@mime@current;base64,\csname picbaselxiv@graphics@#2\endcsname">}%
+    \fi
     \xa\g@addto@macro\xa\htmlize@output\xa{\htmlize@imagetag}%
     \message{moodle.sty:   <IMG> tag inserted.^^J}%
   \egroup
@@ -3477,7 +3960,7 @@
 }%
 \ifwindows
   \def\ConvertToBaseLXIV@int#1#2{%
-    \def\cmdline{\baselxiv\otherspace -encode "#1#2"\otherspace tmp.b64 && findstr /vbc:"---" tmp.b64 > "#1.enc" && del tmp.b64}%
+    \def\cmdline{\baselxiv\otherspace -encode "#1#2"\otherspace tmp.b64 && findstr /vbc:"---" tmp.b64 > "#1.enc" && powershell.exe "del tmp.b64"}%
   }% Starting from Windows 7, CertUtil is included by default. There should be no windows XP still running
 \else
   \ifmacosx
@@ -3526,24 +4009,38 @@
       \def\TikzExportMIME{image/svg+xml}%
       \ifpdfoutput% tex engines defaulting to PDF output (pdflatex, xelatex, lualatex)
         \def\ExportTikz{ \message{moodle.sty: Converting picture '\moodle@basename.pdf' to SVG...^^J}%
-                         \edef\cmdline{\PDFtoSVG\otherspace "\moodle@basename.pdf" -o "\moodle@basename\TikzExportExtension" 2>/dev/null}%
+                         \edef\cmdline{\PDFtoSVG\otherspace "\moodle@basename.pdf" -o "\moodle@basename\TikzExportExtension" 2>\DevNull}%
+\message{\cmdline}
                          \xa\ShellEscape\xa{\cmdline}%
                          \moodle@checkconversionsuccess{\moodle@basename\TikzExportExtension}{PDFtoSVG conversion}%
                        }%
       \else % latex
         \def\ExportTikz{ \message{moodle.sty: Converting picture '\moodle@basename.ps' to SVG...^^J}%
-                         \edef\cmdline{\PDFtoSVG\otherspace "\moodle@basename.ps" -o "\moodle@basename\TikzExportExtension" 2>/dev/null}%
-                         \xa\ShellEscape\xa{\cmdline}%
+                         \edef\cmdline{\PDFtoSVG\otherspace "\moodle@basename.ps" -o "\moodle@basename\TikzExportExtension" 2>\DevNull}%
+\message{\cmdline}
+                        \xa\ShellEscape\xa{\cmdline}%
                          \moodle@checkconversionsuccess{\moodle@basename\TikzExportExtension}{PStoSVG conversion}%
                        }%
       \fi
-      \def\OptimizeExport{ \message{moodle.sty:   Optimizing '\moodle@basename.svg'...^^J}%
+      \ifwindows
+        \def\OptimizeExport{ \message{moodle.sty:   Optimizing '\moodle@basename.svg'...^^J}%
                            \edef\cmdline{\optiSVG\otherspace < "\moodle@basename\TikzExportExtension" >
-                                         "\moodle@basename.tmp.svg" && mv "\moodle@basename.tmp.svg"
-                                         "\moodle@basename\TikzExportExtension" }%
+                                         "\moodle@basename.tmp.svg" && powershell.exe "move ""\moodle@basename.tmp.svg""" %
+                                         """\moodle@basename\TikzExportExtension"""}%
+                           \message{\cmdline}
                            \xa\ShellEscape\xa{\cmdline}%
                            \moodle@checkconversionsuccess{\moodle@basename\TikzExportExtension}{SVG optimization}%
                          }%
+      \else
+        \def\OptimizeExport{ \message{moodle.sty:   Optimizing '\moodle@basename.svg'...^^J}%
+                           \edef\cmdline{\optiSVG\otherspace < "\moodle@basename\TikzExportExtension" >
+                                         "\moodle@basename.tmp.svg" && \MoveFiles\otherspace "\moodle@basename.tmp.svg"
+                                         "\moodle@basename\TikzExportExtension" }%
+                           \message{\cmdline}
+                           \xa\ShellEscape\xa{\cmdline}%
+                           \moodle@checkconversionsuccess{\moodle@basename\TikzExportExtension}{SVG optimization}%
+                         }%
+      \fi
     \else
       \def\TikzExportExtension{.png}%
       \def\TikzExportMIME{image/png}%
@@ -3600,19 +4097,37 @@
     \fi
     %
     % The HTMLizer version of the tikzpicture environment,
-    % which writes an <IMG> tag to the XML file.
+    % which writes an <IMG> tag to the \XML\ file.
     \htmlize@record@environment{tikzpicture}%
     \g@addto@macro\htmlize@activate@environments{%
       \let\tikzpicture\relax\let\endtikzpicture\relax
       \NewEnviron{tikzpicture}[1][]{%
         \global\advance\numpicturesread by 1\relax
-        \edef\htmlize@imagetag{<IMG SRC="data:\TikzExportMIME;base64,\csname picbaselxiv@\the\numpicturesread\endcsname">}%
+        \ifmoodle@pluginfile
+          \edef\htmlize@imagetag{<IMG SRC="@@PLUGINFILE@@/tikz/\tikzexternalrealjob-tikztemp-\the\numpicturesread\TikzExportExtension">}%
+          \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{<file name="\tikzexternalrealjob-tikztemp-}%
+          \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{\the\numpicturesread}%
+          \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{\TikzExportExtension"}
+          \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{ path="/tikz/" encoding="base64">}%
+          \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{\csname picbaselxiv@\the\numpicturesread\endcsname</file>}%
+        \else
+          \edef\htmlize@imagetag{<IMG SRC="data:\TikzExportMIME;base64,\csname picbaselxiv@\the\numpicturesread\endcsname">}%
+        \fi
         \xa\g@addto@macro\xa\htmlize@output\xa{\htmlize@imagetag}%
       }[\htmlize@patchendenvironment]%
     }%
     \html@action@newcommand{tikz}[2][]{%
       \global\advance\numpicturesread by 1\relax
-      \edef\htmlize@imagetag{<IMG SRC="data:\TikzExportMIME;base64,\csname picbaselxiv@\the\numpicturesread\endcsname">}%
+      \ifmoodle@pluginfile
+        \edef\htmlize@imagetag{<IMG SRC="@@PLUGINFILE@@/tikz/\tikzexternalrealjob-tikztemp-\the\numpicturesread\TikzExportExtension">}%
+        \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{<file name="\tikzexternalrealjob-tikztemp-}%
+        \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{\the\numpicturesread}%
+        \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{\TikzExportExtension"}
+        \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{ path="/tikz/" encoding="base64">}%
+        \xa\g@addto@macro\xa\htmlize@embeddedfiletags\xa{\csname picbaselxiv@\the\numpicturesread\endcsname</file>}%
+      \else
+        \edef\htmlize@imagetag{<IMG SRC="data:\TikzExportMIME;base64,\csname picbaselxiv@\the\numpicturesread\endcsname">}%
+      \fi
       \xa\g@addto@macro\xa\htmlize@output\xa{\htmlize@imagetag}%
     }%
   \else
@@ -3635,7 +4150,12 @@
 \def\savebaselxivdata{%
   \def\moodle@newpic@baselxiv{}%
   \openin\baseLXIVdatafile=\tikzexternalrealjob-tikztemp-\the\numconvertedpictures.enc\relax
+  \ifeof\baseLXIVdatafile
+      \PackageError{moodle}{reading '\moodle@media@base.enc' failed}%
+        {If the XML file is not of importance to you: use package option "draft"}%
+  \else
     \savebaselxivdata@recursive
+  \fi
   \closein\baseLXIVdatafile
   \xa\global\xa\let\csname picbaselxiv@\the\numconvertedpictures\endcsname=\moodle@newpic@baselxiv%
 }
@@ -3653,12 +4173,16 @@
       \ifXeTeX
         % we must keep picture pdf's for subsequent linking (xdvipdfmx)
         \ifwindows
-          \ShellEscape{powershell.exe -noexit "del * -include \tikzexternalrealjob-tikztemp-*.* -exclude *.pdf}%
+          \ShellEscape{powershell.exe "del * -include \tikzexternalrealjob-tikztemp-*.* -exclude *.pdf"}%
         \else
           \ShellEscape{find . -type f -name "\tikzexternalrealjob-tikztemp-*.*" -not -name "*.pdf" -delete}%
         \fi
       \else
-        \ShellEscape{\DeleteFiles\otherspace \tikzexternalrealjob-tikztemp-*.*}%
+        \ifwindows
+          \ShellEscape{powershell.exe "del \tikzexternalrealjob-tikztemp-*.*"}%
+        \else
+          \ShellEscape{\DeleteFiles\otherspace \tikzexternalrealjob-tikztemp-*.*}%
+        \fi
       \fi
     }{}%
   \fi
@@ -3716,6 +4240,25 @@
   }{}%
 }%
 \def\xmlDisplayVerbatimBox{border-top: thin solid; border-bottom: thin solid}%
+\begingroup
+\catcode`\<=\active\relax
+\catcode`\>=\active\relax
+\catcode`\"=\active\relax
+\catcode`\'=\active\relax
+\catcode`\&=\active\relax
+\gdef\moodle@HackTML{%
+  \catcode`\<=\active\relax
+  \catcode`\>=\active\relax
+  \catcode`\"=\active\relax
+  \catcode`\'=\active\relax
+  \catcode`\&=\active\relax
+  \gdef<{\otherampersand lt;}%
+  \gdef>{\otherampersand gt;}%
+  \gdef"{\otherampersand quot;}%
+  \gdef'{\otherampersand apos;}%
+  \gdef&{\otherampersand amp;}%
+}%
+\endgroup
 \html@action@def\verbatiminput#1{%
   \message{moodle.sty: Processing \string\verbatiminput{#1} for HTML ^^J}%
   \g@addto@macro\htmlize@output{<PRE style="\xmlDisplayVerbatimBox"><CODE>}%
@@ -3723,6 +4266,7 @@
   \@bsphack
   \let\do\@makeother\dospecials
   \catcode`\^^M\active
+  \moodle@HackTML
   \def\verbatim@processline{\xa\g@addto@macro\xa\htmlize@output\xa{\the\verbatim@line<BR/>}}
   \verbatim@readfile{#1}%
   \@esphack
@@ -3736,24 +4280,27 @@
 \@ifpackageloaded{fancyvrb}{\PackageError{moodle}{'moodle' should be loaded before 'fancyvrb'.}%
 {'moodle' loads 'fancybox' which, unfortunately, redefines verbatim commands.}}{\relax}%
 
-\html@action@newcommand{VerbatimInput}[2][]{%
-  \message{moodle.sty: Processing \string\VerbatimInput[#1]{#2} for HTML ^^J}%
-  \def\FV@KeyValues{#1}%
-  \FV@UseKeyValues% import options defined in #1
-  \moodle@VerbatimInput{#2}%
-}%
-\html@action@newcommand{LVerbatimInput}[2][]{%
-  \message{moodle.sty: Processing \string\LVerbatimInput[#1]{#2} for HTML ^^J}%
-  \def\FV@KeyValues{#1}%
-  \FV@UseKeyValues% import options defined in #1
-  \moodle@VerbatimInput{#2}%
-}%
-\html@action@newcommand{BVerbatimInput}[2][]{%
-  \message{moodle.sty: Processing \string\BVerbatimInput[#1]{#2} for HTML ^^J}%
-  \def\FV@KeyValues{#1}%
-  \FV@UseKeyValues% import options defined in #1
-  \moodle@VerbatimInput{#2}%
-}%
+\def\moodle@FV#1{%
+  \html@action@newcommand{#1}[2][]{%
+    \message{moodle.sty: Processing \@backslashchar#1[##1]{##2} for HTML ^^J}%
+    \def\FV@KeyValues{##1}%
+    \FV@UseKeyValues% import options defined in #1
+    \def\FV@Input####1{
+      \immediate\openin\FV@InFile ####1\relax
+      \ifeof\FV@InFile
+        \FV@Error{No verbatim file ####1}\FV@eha
+        \immediate\closein\FV@InFile
+      \else
+        \FV@CatCodes
+        \moodle@HackTML
+        \expandafter\FV@@Input
+      \fi}%
+    \moodle@VerbatimInput{##2}%
+  }%
+}
+\moodle@FV{VerbatimInput}%
+\moodle@FV{LVerbatimInput}%
+\moodle@FV{BVerbatimInput}%
 \def\moodle@VerbatimInput#1{%
   \g@addto@macro\htmlize@output{<PRE style="\xmlDisplayVerbatimBox"><CODE>}%
   %%%%%%%% using material from fancyvrb and fvextra  %%%%%%%%
@@ -3772,7 +4319,7 @@
       \fi
     \fi
   }
-  % redefine the ProcessLine routine ('fancyvrb' and 'fvextra') for XML output
+  % redefine the ProcessLine routine ('fancyvrb' and 'fvextra') for \XML\ output
   \def\FV@ProcessLine##1{%
     \ifcsname FV@HighlightLine:\number\c@FancyVerbLine\endcsname
       \xdef\moodle@FV@tagB{<mark>}% fvextra triggered highlighting for this line
@@ -3818,8 +4365,11 @@
 \AtEndPreamble{% this definition should prevail because `minted' gets loaded after `moodle'
 \@ifpackageloaded{minted}{%
   \newcounter{moodle@pygmentizecounter}%
+  \@ifundefined{minted@defstyle}{% compatibility with minted prior to 2021/12/24 v2.6
+    \let\minted@defstyle=\minted@checkstyle%
+  }{}%
   \renewcommand{\minted@pygmentize}[2][\minted@outputdir\minted@jobname.pyg]{%
-    \minted@checkstyle{\minted@get@opt{style}{default}}%
+    \minted@defstyle{\minted@get@opt{style}{default}}%
     \stepcounter{minted@pygmentizecounter}%
     \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
       {\def\minted@codefile{\minted@outputdir\minted@jobname.pyg}}%
@@ -3852,7 +4402,7 @@
       \fi}%
     \def\minted@cmd{\minted@cmdtemplate{latex -P commandprefix=PYG}{\minted@infile}}
     % For debugging, uncomment: %%%%
-    \immediate\typeout{\minted@cmd}%
+    %\immediate\typeout{\minted@cmd}%
     % %%%%
     \def\minted@cmdHTML{\minted@cmdtemplate{html -P noclasses -P
       nowrap -P hl_lines="\FV@HighlightLinesList" -P
@@ -3983,24 +4533,771 @@
   \stepcounter{moodle@pygmentizecounter}
   \xa\moodle@VerbatimInput\xa{\csname minted@infileHTML\the\c@moodle@pygmentizecounter\endcsname}%
 }%
+\AtEndPreamble{%
+  \@ifpackageloaded{translator}{\moodle@internationaltrue}{}%
+  \@ifpackageloaded{translations}{\moodle@internationaltrue}{}%
+  % polyglossia "fakes" babel
+  \@ifpackageloaded{polyglossia}{%
+    \moodle@internationaltrue
+    % The following is commented because \xpg@bloaded is set very late and must be expanded
+    %\PassOptionsToPackage{\xpg@bloaded}{translator}
+  }{
+    \@ifpackageloaded{babel}{%
+      \moodle@internationaltrue
+      % The following is commented because some languages of babel,
+      % like lithuanian, are unknown to translator. Instead we
+      % copied the aliases below.
+      %\PassOptionsToPackage{\bbl@loaded}{translator}%
+    }{}%
+  }%
+  \ifmoodle@international
+    % By default, we load and rely on "translator".
+    % The package is simple and has limited dependencies.
+    % Since we borrow the syntax of "translations",
+    % the switch is easy: just "\usepackage{translations}"
+    % in the preamble.
+    %\RequirePackage{translations}%
+    \@ifpackageloaded{translations}{}{%
+      \RequirePackage{translator}%
+      % Borrow the syntax from 'translations'
+      \newcommand\DeclareTranslation[3]{\deftranslation[to=#1]{#2}{#3}}%
+      \newcommand\DeclareTranslationFallback[2]{\deftranslation[to=fallback]{#1}{#2}}%
+      \let\GetTranslation=\translate
+      % Set a fall-back if a translation is unknown (usually English, see below)
+      \languagepath{\languagename,fallback}%
+      % Set aliases (most of them taken directly from translator.sty)
+      \languagealias{afrikaans} {Afrikaans,Dutch}%
+      \languagealias{american}  {AmericanEnglish,English}%
+      \languagealias{austrian}  {Austrian1997,Austrian,German1997,German}%
+      \languagealias{brazil}    {Brazilian,Portuguese}%
+      \languagealias{brazilian} {Brazilian,Portuguese}%
+      \languagealias{british}   {BritishEnglish,English}%
+      \languagealias{catalan}   {Catalan}% unknown to translator
+      \languagealias{canadian}  {Canadian,English}%
+      \languagealias{canadien}  {Canadien,French}%
+      \languagealias{croatian}  {Croatian}%
+      \languagealias{czech}     {Czech}%
+      \languagealias{danish}    {Danish}%
+      \languagealias{dutch}     {Dutch}%
+      \languagealias{english}   {English}%
+      \languagealias{estonian}  {Estonian}%
+      \languagealias{finnish}   {Finnish}%
+      \languagealias{french}    {French}%
+      \languagealias{german}    {German1997,German}%
+      \languagealias{hungarian} {Hungarian}%
+      \languagealias{icelandic} {Icelandic}%
+      \languagealias{italian}   {Italian}%
+      \languagealias{lithuanian}{Lithuanian}% unknown to translator
+      \languagealias{magyar}    {Magyar,Hungarian}% added Hungarian
+      \languagealias{naustrian} {Austrian,German}%
+      \languagealias{ngerman}   {German}%
+      \languagealias{norsk}     {Norsk}%
+      \languagealias{norwegian} {Norsk}% for polyglossia
+      \languagealias{nynorsk}   {Nynorsk,Norsk}%
+      \languagealias{polish}    {Polish}%
+      \languagealias{portuges}  {Portuguese}%
+      \languagealias{portuguese}{Portuguese}%
+      \languagealias{romanian}  {Romanian}%
+      \languagealias{slovak}    {Slovak,Czech}% added Czech
+      \languagealias{spanish}   {Spanish}%
+      \languagealias{swedish}   {Swedish}%
+      \languagealias{turkish}   {Turkish}%
+      \languagealias{UKenglish} {BritishEnglish,English}%
+      \languagealias{USenglish} {AmericanEnglish,English}%
+    }%
+    \DeclareTranslation{Catalan}{True}{Vertader}%
+    \DeclareTranslation{Catalan}{False}{Fals}%
+    %\DeclareTranslation{Catalan}{cloze}{}%
+    %\DeclareTranslation{Catalan}{description}{}%
+    %\DeclareTranslation{Catalan}{essay}{}%
+    %\DeclareTranslation{Catalan}{matching}{}%
+    %\DeclareTranslation{Catalan}{multi}{}%
+    %\DeclareTranslation{Catalan}{numerical}{}%
+    %\DeclareTranslation{Catalan}{shortanswer}{}%
+    %\DeclareTranslation{Catalan}{truefalse}{}%
+    %\DeclareTranslation{Catalan}{Shuffle}{}%
+    %\DeclareTranslation{Catalan}{Single}{}%
+    %\DeclareTranslation{Catalan}{marked out of}{}%
+    %\DeclareTranslation{Catalan}{penalty}{}%
+    %\DeclareTranslation{Catalan}{tags}{}%
+    %\DeclareTranslation{Catalan}{All-or-nothing}{}%
+    %\DeclareTranslation{Catalan}{Case-Sensitive}{}%
+    %\DeclareTranslation{Catalan}{Case-Insensitive}{}%
+    %\DeclareTranslation{Catalan}{Drag and drop}{}%
+    %\DeclareTranslation{Catalan}{Information for graders}{}%
+    %\DeclareTranslation{Catalan}{Response template}{}%
+    %\DeclareTranslation{Catalan}{editor}{}%
+    %\DeclareTranslation{Catalan}{editorfilepicker}{}%
+    %\DeclareTranslation{Catalan}{plain}{}%
+    %\DeclareTranslation{Catalan}{monospaced}{}%
+    %\DeclareTranslation{Catalan}{noinline}{}%
+    %\DeclareTranslation{Catalan}{Total of marks}{}%
+    \DeclareTranslation{Croatian}{True}{To\v{c}no}%
+    \DeclareTranslation{Croatian}{False}{Neto\v{c}no}%
+    %\DeclareTranslation{Croatian}{cloze}{}%
+    %\DeclareTranslation{Croatian}{description}{}%
+    %\DeclareTranslation{Croatian}{essay}{}%
+    %\DeclareTranslation{Croatian}{matching}{}%
+    %\DeclareTranslation{Croatian}{multi}{}%
+    %\DeclareTranslation{Croatian}{numerical}{}%
+    %\DeclareTranslation{Croatian}{shortanswer}{}%
+    %\DeclareTranslation{Croatian}{truefalse}{}%
+    %\DeclareTranslation{Croatian}{Shuffle}{}%
+    %\DeclareTranslation{Croatian}{Single}{}%
+    %\DeclareTranslation{Croatian}{Multiple}{}%
+    %\DeclareTranslation{Croatian}{marked out of}{}%
+    %\DeclareTranslation{Croatian}{penalty}{}%
+    %\DeclareTranslation{Croatian}{tags}{}%
+    %\DeclareTranslation{Croatian}{All-or-nothing}{}%
+    %\DeclareTranslation{Croatian}{Case-Sensitive}{}%
+    %\DeclareTranslation{Croatian}{Case-Insensitive}{}%
+    %\DeclareTranslation{Croatian}{Drag and drop}{}%
+    %\DeclareTranslation{Croatian}{Information for graders}{}%
+    %\DeclareTranslation{Croatian}{Response template}{}%
+    %\DeclareTranslation{Croatian}{editor}{}%
+    %\DeclareTranslation{Croatian}{editorfilepicker}{}%
+    %\DeclareTranslation{Croatian}{plain}{}%
+    %\DeclareTranslation{Croatian}{monospaced}{}%
+    %\DeclareTranslation{Croatian}{noinline}{}%
+    %\DeclareTranslation{Croatian}{Total of marks}{}%
+    \DeclareTranslation{Czech}{True}{Pravda}%
+    \DeclareTranslation{Czech}{False}{Nepravda}%
+    %\DeclareTranslation{Czech}{cloze}{}%
+    %\DeclareTranslation{Czech}{description}{}%
+    %\DeclareTranslation{Czech}{essay}{}%
+    %\DeclareTranslation{Czech}{matching}{}%
+    %\DeclareTranslation{Czech}{multi}{}%
+    %\DeclareTranslation{Czech}{numerical}{}%
+    %\DeclareTranslation{Czech}{shortanswer}{}%
+    %\DeclareTranslation{Czech}{truefalse}{}%
+    %\DeclareTranslation{Czech}{Shuffle}{}%
+    %\DeclareTranslation{Czech}{Single}{}%
+    %\DeclareTranslation{Czech}{Multiple}{}%
+    %\DeclareTranslation{Czech}{marked out of}{}%
+    %\DeclareTranslation{Czech}{penalty}{}%
+    %\DeclareTranslation{Czech}{tags}{}%
+    %\DeclareTranslation{Czech}{All-or-nothing}{}%
+    %\DeclareTranslation{Czech}{Case-Sensitive}{}%
+    %\DeclareTranslation{Czech}{Case-Insensitive}{}%
+    %\DeclareTranslation{Czech}{Drag and drop}{}%
+    %\DeclareTranslation{Czech}{Information for graders}{}%
+    %\DeclareTranslation{Czech}{Response template}{}%
+    %\DeclareTranslation{Czech}{editor}{}%
+    %\DeclareTranslation{Czech}{editorfilepicker}{}%
+    %\DeclareTranslation{Czech}{plain}{}%
+    %\DeclareTranslation{Czech}{monospaced}{}%
+    %\DeclareTranslation{Czech}{noinline}{}%
+    %\DeclareTranslation{Czech}{Total of marks}{}%
+    \DeclareTranslation{Danish}{True}{Sandt}%
+    \DeclareTranslation{Danish}{False}{Falsk}%
+    %\DeclareTranslation{Danish}{cloze}{}%
+    %\DeclareTranslation{Danish}{description}{}%
+    %\DeclareTranslation{Danish}{essay}{}%
+    %\DeclareTranslation{Danish}{matching}{}%
+    %\DeclareTranslation{Danish}{multi}{}%
+    %\DeclareTranslation{Danish}{numerical}{}%
+    %\DeclareTranslation{Danish}{shortanswer}{}%
+    %\DeclareTranslation{Danish}{truefalse}{}%
+    %\DeclareTranslation{Danish}{Shuffle}{}%
+    %\DeclareTranslation{Danish}{Single}{}%
+    %\DeclareTranslation{Danish}{Multiple}{}%
+    %\DeclareTranslation{Danish}{marked out of}{}%
+    %\DeclareTranslation{Danish}{penalty}{}%
+    %\DeclareTranslation{Danish}{tags}{}%
+    %\DeclareTranslation{Danish}{All-or-nothing}{}%
+    %\DeclareTranslation{Danish}{Case-Sensitive}{}%
+    %\DeclareTranslation{Danish}{Case-Insensitive}{}%
+    %\DeclareTranslation{Danish}{Drag and drop}{}%
+    %\DeclareTranslation{Danish}{Information for graders}{}%
+    %\DeclareTranslation{Danish}{Response template}{}%
+    %\DeclareTranslation{Danish}{editor}{}%
+    %\DeclareTranslation{Danish}{editorfilepicker}{}%
+    %\DeclareTranslation{Danish}{plain}{}%
+    %\DeclareTranslation{Danish}{monospaced}{}%
+    %\DeclareTranslation{Danish}{noinline}{}%
+    %\DeclareTranslation{Danish}{Total of marks}{}%
+    \DeclareTranslation{Dutch}{True}{Waar}%
+    \DeclareTranslation{Dutch}{False}{Niet waar}%
+    %\DeclareTranslation{Dutch}{cloze}{}%
+    %\DeclareTranslation{Dutch}{description}{}%
+    %\DeclareTranslation{Dutch}{essay}{}%
+    %\DeclareTranslation{Dutch}{matching}{}%
+    %\DeclareTranslation{Dutch}{multi}{}%
+    %\DeclareTranslation{Dutch}{numerical}{}%
+    %\DeclareTranslation{Dutch}{shortanswer}{}%
+    %\DeclareTranslation{Dutch}{truefalse}{}%
+    %\DeclareTranslation{Dutch}{Shuffle}{}%
+    %\DeclareTranslation{Dutch}{Single}{}%
+    %\DeclareTranslation{Dutch}{Multiple}{}%
+    %\DeclareTranslation{Dutch}{marked out of}{}%
+    %\DeclareTranslation{Dutch}{penalty}{}%
+    %\DeclareTranslation{Dutch}{tags}{}%
+    %\DeclareTranslation{Dutch}{All-or-nothing}{}%
+    %\DeclareTranslation{Dutch}{Case-Sensitive}{}%
+    %\DeclareTranslation{Dutch}{Case-Insensitive}{}%
+    %\DeclareTranslation{Dutch}{Drag and drop}{}%
+    %\DeclareTranslation{Dutch}{Information for graders}{}%
+    %\DeclareTranslation{Dutch}{Response template}{}%
+    %\DeclareTranslation{Dutch}{editor}{}%
+    %\DeclareTranslation{Dutch}{editorfilepicker}{}%
+    %\DeclareTranslation{Dutch}{plain}{}%
+    %\DeclareTranslation{Dutch}{monospaced}{}%
+    %\DeclareTranslation{Dutch}{noinline}{}%
+    %\DeclareTranslation{Dutch}{Total of marks}{}%
+    \DeclareTranslation{English}{True}{True}%
+    \DeclareTranslation{English}{False}{False}%
+    \DeclareTranslation{English}{cloze}{Embedded answers}%
+    \DeclareTranslation{English}{description}{Description}%
+    \DeclareTranslation{English}{essay}{Essay}%
+    \DeclareTranslation{English}{matching}{Matching}%
+    \DeclareTranslation{English}{multi}{Multiple choice}%
+    \DeclareTranslation{English}{numerical}{Numerical}%
+    \DeclareTranslation{English}{shortanswer}{Short answer}%
+    \DeclareTranslation{English}{truefalse}{True/False}%
+    \DeclareTranslation{English}{Shuffle}{Shuffle}%
+    \DeclareTranslation{English}{Single}{One answer only}%
+    \DeclareTranslation{English}{Multiple}{Multiple answers allowed}%
+    \DeclareTranslation{English}{marked out of}{marked out of}%
+    \DeclareTranslation{English}{penalty}{penalty}%
+    \DeclareTranslation{English}{tags}{tags}%
+    \DeclareTranslation{English}{All-or-nothing}{All-or-nothing}%
+    \DeclareTranslation{English}{Case-Sensitive}{Case-Sensitive}%
+    \DeclareTranslation{English}{Case-Insensitive}{Case-Insensitive}%
+    \DeclareTranslation{English}{Drag and drop}{Drag and drop}%
+    \DeclareTranslation{English}{Information for graders}{Information for graders}%
+    \DeclareTranslation{English}{Response template}{Response template}%
+    \DeclareTranslation{English}{editor}{HTML editor}%
+    \DeclareTranslation{English}{editorfilepicker}{HTML editor + file picker}%
+    \DeclareTranslation{English}{plain}{Plain text}%
+    \DeclareTranslation{English}{monospaced}{Plain text, monospaced font}%
+    \DeclareTranslation{English}{noinline}{File picker}%
+    \DeclareTranslation{English}{Total of marks}{Total of marks}%
+    \DeclareTranslation{Estonian}{True}{T\~oene}%
+    \DeclareTranslation{Estonian}{False}{V\"a\"ar}%
+    %\DeclareTranslation{Estonian}{cloze}{}%
+    %\DeclareTranslation{Estonian}{description}{}%
+    %\DeclareTranslation{Estonian}{essay}{}%
+    %\DeclareTranslation{Estonian}{matching}{}%
+    %\DeclareTranslation{Estonian}{multi}{}%
+    %\DeclareTranslation{Estonian}{numerical}{}%
+    %\DeclareTranslation{Estonian}{shortanswer}{}%
+    %\DeclareTranslation{Estonian}{truefalse}{}%
+    %\DeclareTranslation{Estonian}{Shuffle}{}%
+    %\DeclareTranslation{Estonian}{Single}{}%
+    %\DeclareTranslation{Estonian}{Multiple}{}%
+    %\DeclareTranslation{Estonian}{marked out of}{}%
+    %\DeclareTranslation{Estonian}{penalty}{}%
+    %\DeclareTranslation{Estonian}{tags}{}%
+    %\DeclareTranslation{Estonian}{All-or-nothing}{}%
+    %\DeclareTranslation{Estonian}{Case-Sensitive}{}%
+    %\DeclareTranslation{Estonian}{Case-Insensitive}{}%
+    %\DeclareTranslation{Estonian}{Drag and drop}{}%
+    %\DeclareTranslation{Estonian}{Information for graders}{}%
+    %\DeclareTranslation{Estonian}{Response template}{}%
+    %\DeclareTranslation{Estonian}{editor}{}%
+    %\DeclareTranslation{Estonian}{editorfilepicker}{}%
+    %\DeclareTranslation{Estonian}{plain}{}%
+    %\DeclareTranslation{Estonian}{monospaced}{}%
+    %\DeclareTranslation{Estonian}{noinline}{}%
+    %\DeclareTranslation{Estonian}{Total of marks}{}%
+    \DeclareTranslation{Finnish}{True}{Tosi}%
+    \DeclareTranslation{Finnish}{False}{Ep\"atosi}%
+    %\DeclareTranslation{Finnish}{cloze}{}%
+    %\DeclareTranslation{Finnish}{description}{}%
+    %\DeclareTranslation{Finnish}{essay}{}%
+    %\DeclareTranslation{Finnish}{matching}{}%
+    %\DeclareTranslation{Finnish}{multi}{}%
+    %\DeclareTranslation{Finnish}{numerical}{}%
+    %\DeclareTranslation{Finnish}{shortanswer}{}%
+    %\DeclareTranslation{Finnish}{truefalse}{}%
+    %\DeclareTranslation{Finnish}{Shuffle}{}%
+    %\DeclareTranslation{Finnish}{Single}{}%
+    %\DeclareTranslation{Finnish}{Multiple}{}%
+    %\DeclareTranslation{Finnish}{marked out of}{}%
+    %\DeclareTranslation{Finnish}{penalty}{}%
+    %\DeclareTranslation{Finnish}{tags}{}%
+    %\DeclareTranslation{Finnish}{All-or-nothing}{}%
+    %\DeclareTranslation{Finnish}{Case-Sensitive}{}%
+    %\DeclareTranslation{Finnish}{Case-Insensitive}{}%
+    %\DeclareTranslation{Finnish}{Drag and drop}{}%
+    %\DeclareTranslation{Finnish}{Information for graders}{}%
+    %\DeclareTranslation{Finnish}{Response template}{}%
+    %\DeclareTranslation{Finnish}{editor}{}%
+    %\DeclareTranslation{Finnish}{editorfilepicker}{}%
+    %\DeclareTranslation{Finnish}{plain}{}%
+    %\DeclareTranslation{Finnish}{monospaced}{}%
+    %\DeclareTranslation{Finnish}{noinline}{}%
+    %\DeclareTranslation{Finnish}{Total of marks}{}%
+    \DeclareTranslation{French}{True}{Vrai}%
+    \DeclareTranslation{French}{False}{Faux}%
+    \DeclareTranslation{French}{cloze}{R\'eponses int\'egr\'ees}%
+    \DeclareTranslation{French}{description}{Description}%
+    \DeclareTranslation{French}{essay}{Composition}%
+    \DeclareTranslation{French}{matching}{Appariement}%
+    \DeclareTranslation{French}{multi}{QCM}%
+    \DeclareTranslation{French}{numerical}{Num\'erique}%
+    \DeclareTranslation{French}{shortanswer}{R\'eponse courte}%
+    \DeclareTranslation{French}{truefalse}{Vrai/Faux}%
+    \DeclareTranslation{French}{Shuffle}{M\'elanger}%
+    \DeclareTranslation{French}{Single}{R\'eponse unique}%
+    \DeclareTranslation{French}{Multiple}{Plusieurs r\'eponses possibles}%
+    \DeclareTranslation{French}{marked out of}{not\'e sur}%
+    \DeclareTranslation{French}{penalty}{p\'enalit\'e}%
+    \DeclareTranslation{French}{tags}{\'etiquettes}%
+    \DeclareTranslation{French}{All-or-nothing}{Tout ou rien}%
+    \DeclareTranslation{French}{Case-Sensitive}{Sensible \`a la casse}%
+    \DeclareTranslation{French}{Case-Insensitive}{Insensible \`a la casse}%
+    \DeclareTranslation{French}{Drag and drop}{Glisser-d\'eposer}%
+    \DeclareTranslation{French}{Information for graders}{Information pour les évaluateurs}%
+    \DeclareTranslation{French}{Response template}{Mod\`ele de r\'eponse}%
+    \DeclareTranslation{French}{editor}{\'Editeur HTML}%
+    \DeclareTranslation{French}{editorfilepicker}{\'Editeur \HTML\ + s\'electeur de fichier}%
+    \DeclareTranslation{French}{plain}{\'Editeur texte}%
+    \DeclareTranslation{French}{monospaced}{\'Editeur texte, police \`a chasse fixe}%
+    \DeclareTranslation{French}{noinline}{S\'electeur de fichier}%
+    \DeclareTranslation{French}{Total of marks}{Total des points}%
+    \DeclareTranslation{German}{True}{Wahr}%
+    \DeclareTranslation{German}{False}{Falsch}%
+    \DeclareTranslation{German}{cloze}{L\"uckentext}%
+    \DeclareTranslation{German}{description}{Beschreibung}%
+    \DeclareTranslation{German}{essay}{Freitext}%
+    \DeclareTranslation{German}{matching}{Zuordnung}%
+    \DeclareTranslation{German}{multi}{Multiple-Choice}%
+    \DeclareTranslation{German}{numerical}{Numerisch}%
+    \DeclareTranslation{German}{shortanswer}{Kurzantwort}%
+    \DeclareTranslation{German}{truefalse}{Wahr/Falsch}%
+    \DeclareTranslation{German}{Shuffle}{Mischen}%
+    \DeclareTranslation{German}{Single}{Nur eine Antwort erlaubt}%
+    \DeclareTranslation{German}{Multiple}{Mehrere Antworten erlaubt}%
+    \DeclareTranslation{German}{marked out of}{Punkte:}%
+    \DeclareTranslation{German}{penalty}{Abzug}%
+    \DeclareTranslation{German}{tags}{Tags}%
+    \DeclareTranslation{German}{All-or-nothing}{Alles-oder-nichts}%
+    \DeclareTranslation{German}{Case-Sensitive}{Gro\ss-/Kleinschreibung muss stimmen}%
+    \DeclareTranslation{German}{Case-Insensitive}{Gro\ss-/Kleinschreibung unwichtig}%
+    \DeclareTranslation{German}{Drag and drop}{Drag-and-Drop}%
+    \DeclareTranslation{German}{Information for graders}{Information zur Bewertung}%
+    \DeclareTranslation{German}{Response template}{Antwortvorlage}%
+    \DeclareTranslation{German}{editor}{HTML Editor}%
+    \DeclareTranslation{German}{editorfilepicker}{HTML Editor mit Dateiauswahl}%
+    \DeclareTranslation{German}{plain}{Unformatierter Text}%
+    \DeclareTranslation{German}{monospaced}{Unformatierter Text, Schriftart mit fester Laufweite}%
+    \DeclareTranslation{German}{noinline}{Kein Textfeld}%
+    \DeclareTranslation{German}{Total of marks}{Gesamtsumme der Punkte}%
+    \DeclareTranslation{Hungarian}{True}{Igaz}%
+    \DeclareTranslation{Hungarian}{False}{Hamis}%
+    %\DeclareTranslation{Hungarian}{cloze}{}%
+    %\DeclareTranslation{Hungarian}{description}{}%
+    %\DeclareTranslation{Hungarian}{essay}{}%
+    %\DeclareTranslation{Hungarian}{matching}{}%
+    %\DeclareTranslation{Hungarian}{multi}{}%
+    %\DeclareTranslation{Hungarian}{numerical}{}%
+    %\DeclareTranslation{Hungarian}{shortanswer}{}%
+    %\DeclareTranslation{Hungarian}{truefalse}{}%
+    %\DeclareTranslation{Hungarian}{Shuffle}{}%
+    %\DeclareTranslation{Hungarian}{Single}{}%
+    %\DeclareTranslation{Hungarian}{Multiple}{}%
+    %\DeclareTranslation{Hungarian}{marked out of}{}%
+    %\DeclareTranslation{Hungarian}{penalty}{}%
+    %\DeclareTranslation{Hungarian}{tags}{}%
+    %\DeclareTranslation{Hungarian}{All-or-nothing}{}%
+    %\DeclareTranslation{Hungarian}{Case-Sensitive}{}%
+    %\DeclareTranslation{Hungarian}{Case-Insensitive}{}%
+    %\DeclareTranslation{Hungarian}{Drag and drop}{}%
+    %\DeclareTranslation{Hungarian}{Information for graders}{}%
+    %\DeclareTranslation{Hungarian}{Response template}{}%
+    %\DeclareTranslation{Hungarian}{editor}{}%
+    %\DeclareTranslation{Hungarian}{editorfilepicker}{}%
+    %\DeclareTranslation{Hungarian}{plain}{}%
+    %\DeclareTranslation{Hungarian}{monospaced}{}%
+    %\DeclareTranslation{Hungarian}{noinline}{}%
+    %\DeclareTranslation{Hungarian}{Total of marks}{}%
+    \DeclareTranslation{Icelandic}{True}{R\'ett}%
+    \DeclareTranslation{Icelandic}{False}{Rangt}%
+    %\DeclareTranslation{Icelandic}{cloze}{}%
+    %\DeclareTranslation{Icelandic}{description}{}%
+    %\DeclareTranslation{Icelandic}{essay}{}%
+    %\DeclareTranslation{Icelandic}{matching}{}%
+    %\DeclareTranslation{Icelandic}{multi}{}%
+    %\DeclareTranslation{Icelandic}{numerical}{}%
+    %\DeclareTranslation{Icelandic}{shortanswer}{}%
+    %\DeclareTranslation{Icelandic}{truefalse}{}%
+    %\DeclareTranslation{Icelandic}{Shuffle}{}%
+    %\DeclareTranslation{Icelandic}{Single}{}%
+    %\DeclareTranslation{Icelandic}{Multiple}{}%
+    %\DeclareTranslation{Icelandic}{marked out of}{}%
+    %\DeclareTranslation{Icelandic}{penalty}{}%
+    %\DeclareTranslation{Icelandic}{tags}{}%
+    %\DeclareTranslation{Icelandic}{All-or-nothing}{}%
+    %\DeclareTranslation{Icelandic}{Case-Sensitive}{}%
+    %\DeclareTranslation{Icelandic}{Case-Insensitive}{}%
+    %\DeclareTranslation{Icelandic}{Drag and drop}{}%
+    %\DeclareTranslation{Icelandic}{Information for graders}{}%
+    %\DeclareTranslation{Icelandic}{Response template}{}%
+    %\DeclareTranslation{Icelandic}{editor}{}%
+    %\DeclareTranslation{Icelandic}{editorfilepicker}{}%
+    %\DeclareTranslation{Icelandic}{plain}{}%
+    %\DeclareTranslation{Icelandic}{monospaced}{}%
+    %\DeclareTranslation{Icelandic}{noinline}{}%
+    %\DeclareTranslation{Icelandic}{Total of marks}{}%
+    \DeclareTranslation{Italian}{True}{Vero}%
+    \DeclareTranslation{Italian}{False}{Falso}%
+    \DeclareTranslation{Italian}{cloze}{Risposte inglobate}%
+    \DeclareTranslation{Italian}{description}{Descrizione}%
+    \DeclareTranslation{Italian}{essay}{Tema libero}%
+    \DeclareTranslation{Italian}{matching}{Corrispondenza}%
+    \DeclareTranslation{Italian}{multi}{Risposta multipla}%
+    \DeclareTranslation{Italian}{numerical}{Numerica}%
+    \DeclareTranslation{Italian}{shortanswer}{Risposta breve}%
+    \DeclareTranslation{Italian}{truefalse}{Vero/Falso}%
+    \DeclareTranslation{Italian}{Shuffle}{Ordine casuale}%
+    \DeclareTranslation{Italian}{Single}{Una sola alternativa}%
+    \DeclareTranslation{Italian}{Multiple}{Pi\`u alternative}%
+    \DeclareTranslation{Italian}{marked out of}{punteggio max.}%
+    \DeclareTranslation{Italian}{penalty}{penalit\`a}%
+    \DeclareTranslation{Italian}{tags}{etichette}%
+    \DeclareTranslation{Italian}{All-or-nothing}{Tutto o niente}%
+    \DeclareTranslation{Italian}{Case-Sensitive}{Sensibile alle maiuscole}%
+    \DeclareTranslation{Italian}{Case-Insensitive}{Maiuscolo/minuscolo indifferente}%
+    \DeclareTranslation{Italian}{Drag and drop}{Drag and drop}%
+    \DeclareTranslation{Italian}{Information for graders}{Informazioni per i valutatori}%
+    \DeclareTranslation{Italian}{Response template}{Modello di risposta}%
+    \DeclareTranslation{Italian}{editor}{Editor HTML}%
+    \DeclareTranslation{Italian}{editorfilepicker}{Editor \HTML\ con file picker}%
+    \DeclareTranslation{Italian}{plain}{Testo semplice}%
+    \DeclareTranslation{Italian}{monospaced}{Testo semplice, caratteri a spaziatura fissa}%
+    \DeclareTranslation{Italian}{noinline}{Solo file picker}%
+    \DeclareTranslation{Italian}{Total of marks}{Punteggio complessivo}%
+    \DeclareTranslation{Lithuanian}{True}{Tiesa}%
+    \DeclareTranslation{Lithuanian}{False}{Netiesa}%
+    %\DeclareTranslation{Lithuanian}{cloze}{}%
+    %\DeclareTranslation{Lithuanian}{description}{}%
+    %\DeclareTranslation{Lithuanian}{essay}{}%
+    %\DeclareTranslation{Lithuanian}{matching}{}%
+    %\DeclareTranslation{Lithuanian}{multi}{}%
+    %\DeclareTranslation{Lithuanian}{numerical}{}%
+    %\DeclareTranslation{Lithuanian}{shortanswer}{}%
+    %\DeclareTranslation{Lithuanian}{truefalse}{}%
+    %\DeclareTranslation{Lithuanian}{Shuffle}{}%
+    %\DeclareTranslation{Lithuanian}{Single}{}%
+    %\DeclareTranslation{Lithuanian}{Multiple}{}%
+    %\DeclareTranslation{Lithuanian}{marked out of}{}%
+    %\DeclareTranslation{Lithuanian}{penalty}{}%
+    %\DeclareTranslation{Lithuanian}{tags}{}%
+    %\DeclareTranslation{Lithuanian}{All-or-nothing}{}%
+    %\DeclareTranslation{Lithuanian}{Case-Sensitive}{}%
+    %\DeclareTranslation{Lithuanian}{Case-Insensitive}{}%
+    %\DeclareTranslation{Lithuanian}{Drag and drop}{}%
+    %\DeclareTranslation{Lithuanian}{Information for graders}{}%
+    %\DeclareTranslation{Lithuanian}{Response template}{}%
+    %\DeclareTranslation{Lithuanian}{editor}{}%
+    %\DeclareTranslation{Lithuanian}{editorfilepicker}{}%
+    %\DeclareTranslation{Lithuanian}{plain}{}%
+    %\DeclareTranslation{Lithuanian}{monospaced}{}%
+    %\DeclareTranslation{Lithuanian}{noinline}{}%
+    %\DeclareTranslation{Lithuanian}{Total of marks}{}%
+    \DeclareTranslation{Norsk}{True}{Riktig}%
+    \DeclareTranslation{Norsk}{False}{Feil}%
+    %\DeclareTranslation{Norsk}{cloze}{}%
+    %\DeclareTranslation{Norsk}{description}{}%
+    %\DeclareTranslation{Norsk}{essay}{}%
+    %\DeclareTranslation{Norsk}{matching}{}%
+    %\DeclareTranslation{Norsk}{multi}{}%
+    %\DeclareTranslation{Norsk}{numerical}{}%
+    %\DeclareTranslation{Norsk}{shortanswer}{}%
+    %\DeclareTranslation{Norsk}{truefalse}{}%
+    %\DeclareTranslation{Norsk}{Shuffle}{}%
+    %\DeclareTranslation{Norsk}{Single}{}%
+    %\DeclareTranslation{Norsk}{Multiple}{}%
+    %\DeclareTranslation{Norsk}{marked out of}{}%
+    %\DeclareTranslation{Norsk}{penalty}{}%
+    %\DeclareTranslation{Norsk}{tags}{}%
+    %\DeclareTranslation{Norsk}{All-or-nothing}{}%
+    %\DeclareTranslation{Norsk}{Case-Sensitive}{}%
+    %\DeclareTranslation{Norsk}{Case-Insensitive}{}%
+    %\DeclareTranslation{Norsk}{Drag and drop}{}%
+    %\DeclareTranslation{Norsk}{Information for graders}{}%
+    %\DeclareTranslation{Norsk}{Response template}{}%
+    %\DeclareTranslation{Norsk}{editor}{}%
+    %\DeclareTranslation{Norsk}{editorfilepicker}{}%
+    %\DeclareTranslation{Norsk}{plain}{}%
+    %\DeclareTranslation{Norsk}{monospaced}{}%
+    %\DeclareTranslation{Norsk}{noinline}{}%
+    %\DeclareTranslation{Norsk}{Total of marks}{}%
+    \DeclareTranslation{Polish}{True}{Prawda}%
+    \DeclareTranslation{Polish}{False}{Fa\l sz}%
+    %\DeclareTranslation{Polish}{cloze}{}%
+    %\DeclareTranslation{Polish}{description}{}%
+    %\DeclareTranslation{Polish}{essay}{}%
+    %\DeclareTranslation{Polish}{matching}{}%
+    %\DeclareTranslation{Polish}{multi}{}%
+    %\DeclareTranslation{Polish}{numerical}{}%
+    %\DeclareTranslation{Polish}{shortanswer}{}%
+    %\DeclareTranslation{Polish}{truefalse}{}%
+    %\DeclareTranslation{Polish}{Shuffle}{}%
+    %\DeclareTranslation{Polish}{Single}{}%
+    %\DeclareTranslation{Polish}{Multiple}{}%
+    %\DeclareTranslation{Polish}{marked out of}{}%
+    %\DeclareTranslation{Polish}{penalty}{}%
+    %\DeclareTranslation{Polish}{tags}{}%
+    %\DeclareTranslation{Polish}{All-or-nothing}{}%
+    %\DeclareTranslation{Polish}{Case-Sensitive}{}%
+    %\DeclareTranslation{Polish}{Case-Insensitive}{}%
+    %\DeclareTranslation{Polish}{Drag and drop}{}%
+    %\DeclareTranslation{Polish}{Information for graders}{}%
+    %\DeclareTranslation{Polish}{Response template}{}%
+    %\DeclareTranslation{Polish}{editor}{}%
+    %\DeclareTranslation{Polish}{editorfilepicker}{}%
+    %\DeclareTranslation{Polish}{plain}{}%
+    %\DeclareTranslation{Polish}{monospaced}{}%
+    %\DeclareTranslation{Polish}{noinline}{}%
+    %\DeclareTranslation{Polish}{Total of marks}{}%
+    \DeclareTranslation{Portuguese}{True}{Verdadeiro}%
+    \DeclareTranslation{Portuguese}{False}{Falso}%
+    %\DeclareTranslation{Portuguese}{cloze}{}%
+    %\DeclareTranslation{Portuguese}{description}{}%
+    %\DeclareTranslation{Portuguese}{essay}{}%
+    %\DeclareTranslation{Portuguese}{matching}{}%
+    %\DeclareTranslation{Portuguese}{multi}{}%
+    %\DeclareTranslation{Portuguese}{numerical}{}%
+    %\DeclareTranslation{Portuguese}{shortanswer}{}%
+    %\DeclareTranslation{Portuguese}{truefalse}{}%
+    %\DeclareTranslation{Portuguese}{Shuffle}{}%
+    %\DeclareTranslation{Portuguese}{Single}{}%
+    %\DeclareTranslation{Portuguese}{Multiple}{}%
+    %\DeclareTranslation{Portuguese}{marked out of}{}%
+    %\DeclareTranslation{Portuguese}{penalty}{}%
+    %\DeclareTranslation{Portuguese}{tags}{}%
+    %\DeclareTranslation{Portuguese}{All-or-nothing}{}%
+    %\DeclareTranslation{Portuguese}{Case-Sensitive}{}%
+    %\DeclareTranslation{Portuguese}{Case-Insensitive}{}%
+    %\DeclareTranslation{Portuguese}{Drag and drop}{}%
+    %\DeclareTranslation{Portuguese}{Information for graders}{}%
+    %\DeclareTranslation{Portuguese}{Response template}{}%
+    %\DeclareTranslation{Portuguese}{editor}{}%
+    %\DeclareTranslation{Portuguese}{editorfilepicker}{}%
+    %\DeclareTranslation{Portuguese}{plain}{}%
+    %\DeclareTranslation{Portuguese}{monospaced}{}%
+    %\DeclareTranslation{Portuguese}{noinline}{}%
+    %\DeclareTranslation{Portuguese}{Total of marks}{}%
+    \DeclareTranslation{Romanian}{True}{Adev\u{a}rat}%
+    \DeclareTranslation{Romanian}{False}{Fals}%
+    %\DeclareTranslation{Romanian}{cloze}{}%
+    %\DeclareTranslation{Romanian}{description}{}%
+    %\DeclareTranslation{Romanian}{essay}{}%
+    %\DeclareTranslation{Romanian}{matching}{}%
+    %\DeclareTranslation{Romanian}{multi}{}%
+    %\DeclareTranslation{Romanian}{numerical}{}%
+    %\DeclareTranslation{Romanian}{shortanswer}{}%
+    %\DeclareTranslation{Romanian}{truefalse}{}%
+    %\DeclareTranslation{Romanian}{Shuffle}{}%
+    %\DeclareTranslation{Romanian}{Single}{}%
+    %\DeclareTranslation{Romanian}{Multiple}{}%
+    %\DeclareTranslation{Romanian}{marked out of}{}%
+    %\DeclareTranslation{Romanian}{penalty}{}%
+    %\DeclareTranslation{Romanian}{tags}{}%
+    %\DeclareTranslation{Romanian}{All-or-nothing}{}%
+    %\DeclareTranslation{Romanian}{Case-Sensitive}{}%
+    %\DeclareTranslation{Romanian}{Case-Insensitive}{}%
+    %\DeclareTranslation{Romanian}{Drag and drop}{}%
+    %\DeclareTranslation{Romanian}{Information for graders}{}%
+    %\DeclareTranslation{Romanian}{Response template}{}%
+    %\DeclareTranslation{Romanian}{editor}{}%
+    %\DeclareTranslation{Romanian}{editorfilepicker}{}%
+    %\DeclareTranslation{Romanian}{plain}{}%
+    %\DeclareTranslation{Romanian}{monospaced}{}%
+    %\DeclareTranslation{Romanian}{noinline}{}%
+    %\DeclareTranslation{Romanian}{Total of marks}{}%
+    \DeclareTranslation{Spanish}{True}{Verdadero}%
+    \DeclareTranslation{Spanish}{False}{Falso}%
+    \DeclareTranslation{Spanish}{cloze}{Respuestas anidadas}%
+    \DeclareTranslation{Spanish}{description}{Descripci\'on}%
+    \DeclareTranslation{Spanish}{essay}{Ensayo}%
+    \DeclareTranslation{Spanish}{matching}{Emparejamiento}%
+    \DeclareTranslation{Spanish}{multi}{Opci\'on m\'ultiple}%
+    \DeclareTranslation{Spanish}{numerical}{Num\'erica}%
+    \DeclareTranslation{Spanish}{shortanswer}{Respuesta corta}%
+    \DeclareTranslation{Spanish}{truefalse}{Verdadero/Falso}%
+    \DeclareTranslation{Spanish}{Shuffle}{Barajar al azar}%
+    \DeclareTranslation{Spanish}{Single}{S\'olo una respuesta}%
+    \DeclareTranslation{Spanish}{Multiple}{Se permiten varias respuestas}%
+    \DeclareTranslation{Spanish}{marked out of}{Punt\'ua como}%
+    \DeclareTranslation{Spanish}{penalty}{penalizaci\'on}%
+    \DeclareTranslation{Spanish}{tags}{marcas}%
+    \DeclareTranslation{Spanish}{All-or-nothing}{Todo o nada}%
+    \DeclareTranslation{Spanish}{Case-Sensitive}{May\'usculas y min\'usculas deben coincidir}%
+    \DeclareTranslation{Spanish}{Case-Insensitive}{Igual may\'usculas que min\'usculas}%
+    \DeclareTranslation{Spanish}{Drag and drop}{Arrastrar y soltar}%
+    \DeclareTranslation{Spanish}{Information for graders}{Informaci\'on para evaluadores}%
+    \DeclareTranslation{Spanish}{Response template}{Plantilla de respuesta}%
+    \DeclareTranslation{Spanish}{editor}{Editor HTML}%
+    \DeclareTranslation{Spanish}{editorfilepicker}{Editor \HTML\ con selector de archivos}%
+    \DeclareTranslation{Spanish}{plain}{Texto sin formato}%
+    \DeclareTranslation{Spanish}{monospaced}{Texto sin formato, tipografía monoespaciada}%
+    \DeclareTranslation{Spanish}{noinline}{Sin texto}%
+    \DeclareTranslation{Spanish}{Total of marks}{Total de puntos}%
+    \DeclareTranslation{Swedish}{True}{Sant}%
+    \DeclareTranslation{Swedish}{False}{Falskt}%
+    %\DeclareTranslation{Swedish}{cloze}{}%
+    %\DeclareTranslation{Swedish}{description}{}%
+    %\DeclareTranslation{Swedish}{essay}{}%
+    %\DeclareTranslation{Swedish}{matching}{}%
+    %\DeclareTranslation{Swedish}{multi}{}%
+    %\DeclareTranslation{Swedish}{numerical}{}%
+    %\DeclareTranslation{Swedish}{shortanswer}{}%
+    %\DeclareTranslation{Swedish}{truefalse}{}%
+    %\DeclareTranslation{Swedish}{Shuffle}{}%
+    %\DeclareTranslation{Swedish}{Single}{}%
+    %\DeclareTranslation{Swedish}{Multiple}{}%
+    %\DeclareTranslation{Swedish}{marked out of}{}%
+    %\DeclareTranslation{Swedish}{penalty}{}%
+    %\DeclareTranslation{Swedish}{tags}{}%
+    %\DeclareTranslation{Swedish}{All-or-nothing}{}%
+    %\DeclareTranslation{Swedish}{Case-Sensitive}{}%
+    %\DeclareTranslation{Swedish}{Case-Insensitive}{}%
+    %\DeclareTranslation{Swedish}{Drag and drop}{}%
+    %\DeclareTranslation{Swedish}{Information for graders}{}%
+    %\DeclareTranslation{Swedish}{Response template}{}%
+    %\DeclareTranslation{Swedish}{editor}{}%
+    %\DeclareTranslation{Swedish}{editorfilepicker}{}%
+    %\DeclareTranslation{Swedish}{plain}{}%
+    %\DeclareTranslation{Swedish}{monospaced}{}%
+    %\DeclareTranslation{Swedish}{noinline}{}%
+    %\DeclareTranslation{Swedish}{Total of marks}{}%
+    \DeclareTranslation{Turkish}{True}{Do\u{g}ru}%
+    \DeclareTranslation{Turkish}{False}{Yanl\i \c{s}}%
+    %\DeclareTranslation{Turkish}{cloze}{}%
+    %\DeclareTranslation{Turkish}{description}{}%
+    %\DeclareTranslation{Turkish}{essay}{}%
+    %\DeclareTranslation{Turkish}{matching}{}%
+    %\DeclareTranslation{Turkish}{multi}{}%
+    %\DeclareTranslation{Turkish}{numerical}{}%
+    %\DeclareTranslation{Turkish}{shortanswer}{}%
+    %\DeclareTranslation{Turkish}{truefalse}{}%
+    %\DeclareTranslation{Turkish}{Shuffle}{}%
+    %\DeclareTranslation{Turkish}{Single}{}%
+    %\DeclareTranslation{Turkish}{Multiple}{}%
+    %\DeclareTranslation{Turkish}{marked out of}{}%
+    %\DeclareTranslation{Turkish}{penalty}{}%
+    %\DeclareTranslation{Turkish}{tags}{}%
+    %\DeclareTranslation{Turkish}{All-or-nothing}{}%
+    %\DeclareTranslation{Turkish}{Case-Sensitive}{}%
+    %\DeclareTranslation{Turkish}{Case-Insensitive}{}%
+    %\DeclareTranslation{Turkish}{Drag and drop}{}%
+    %\DeclareTranslation{Turkish}{Information for graders}{}%
+    %\DeclareTranslation{Turkish}{Response template}{}%
+    %\DeclareTranslation{Turkish}{editor}{}%
+    %\DeclareTranslation{Turkish}{editorfilepicker}{}%
+    %\DeclareTranslation{Turkish}{plain}{}%
+    %\DeclareTranslation{Turkish}{monospaced}{}%
+    %\DeclareTranslation{Turkish}{noinline}{}%
+    %\DeclareTranslation{Turkish}{Total of marks}{}%
+  \else% neither babel nor polyglossia loaded
+    \newcommand\DeclareTranslationFallback[2]{\csdef{moodle@fallback@#1}{#2}}% Save fallback keys
+    \def\GetTranslation#1{\csuse{moodle@fallback@#1}}% Use fallback keys
+  \fi
+  \DeclareTranslationFallback{True}{True}%
+  \DeclareTranslationFallback{False}{False}%
+  \DeclareTranslationFallback{cloze}{Embedded answers}%
+  \DeclareTranslationFallback{description}{Description}%
+  \DeclareTranslationFallback{essay}{Essay}%
+  \DeclareTranslationFallback{matching}{Matching}%
+  \DeclareTranslationFallback{multi}{Multiple choice}%
+  \DeclareTranslationFallback{numerical}{Numerical}%
+  \DeclareTranslationFallback{shortanswer}{Short answer}%
+  \DeclareTranslationFallback{truefalse}{True/False}%
+  \DeclareTranslationFallback{Shuffle}{Shuffle}%
+  \DeclareTranslationFallback{Single}{One answer only}%
+  \DeclareTranslationFallback{Multiple}{Multiple answers allowed}%
+  \DeclareTranslationFallback{marked out of}{marked out of}%
+  \DeclareTranslationFallback{penalty}{penalty}%
+  \DeclareTranslationFallback{tags}{tags}%
+  \DeclareTranslationFallback{All-or-nothing}{All-or-nothing}%
+  \DeclareTranslationFallback{Case-Sensitive}{Case-Sensitive}%
+  \DeclareTranslationFallback{Case-Insensitive}{Case-Insensitive}%
+  \DeclareTranslationFallback{Drag and drop}{Drag and drop}%
+  \DeclareTranslationFallback{Information for graders}{Information for graders}%
+  \DeclareTranslationFallback{Response template}{Response template}%
+  \DeclareTranslationFallback{editor}{HTML editor}%
+  \DeclareTranslationFallback{editorfilepicker}{HTML editor + file picker}%
+  \DeclareTranslationFallback{plain}{Plain text}%
+  \DeclareTranslationFallback{monospaced}{Plain text, monospaced font}%
+  \DeclareTranslationFallback{noinline}{File picker}%
+  \DeclareTranslationFallback{Total of marks}{Total of marks}%
+}%
 \AtBeginDocument{%
-  \def\moodle@babel@german@warn{\PackageWarning{moodle}{Be careful when using moodle
-         and German-related babel package options. The symbol " is made active and your umlauts
-         will confuse moodle. You can either 1) compile with xelatex/lualatex with UTF-8 coded
-         characters or 2) avoid the babel option.}
-  }
-  \@ifpackagewith{babel}{german}{\moodle@babel@german@warn}{\relax}%
-  \@ifpackagewith{babel}{austrian}{\moodle@babel@german@warn}{\relax}%
-  \@ifpackagewith{babel}{swissgerman}{\moodle@babel@german@warn}{\relax}%
-  \@ifpackagewith{babel}{swissgerman.toss}{\moodle@babel@german@warn}{\relax}%
-  \@ifpackagewith{babel}{ngerman}{\moodle@babel@german@warn}{\relax}%
-  \@ifpackagewith{babel}{naustrian}{\moodle@babel@german@warn}{\relax}%
-  \@ifpackagewith{babel}{nswissgerman}{\moodle@babel@german@warn}{\relax}%
-  \@ifpackagewith{babel}{nswissgerman.toss}{\moodle@babel@german@warn}{\relax}%
-  \ifPDFTeX % pdflatex or latex
-    \@ifpackagewith{babel}{french}{%
-      \PackageWarning{moodle}{Be careful when using LaTeX, moodle, and the babel package with option 'french'. Autospacing produces in undesired symbols in the XML. You can either 1) compile with xelatex/lualatex or 2) add '\NoAutoSpacing' after '\begin{quiz}'.}%
-    }{\relax}%
+  \@ifpackageloaded{babel}{%
+    \@ifundefined{bbl@loaded}{}{% polyglossia fakes babel
+      \forcsvlist{\listadd\moodle@babel@german@list}{german,austrian,swissgerman,swissgerman.toss,ngerman,naustrian,nswissgerman,nswissgerman.toss}%
+      \forcsvlist{\listadd\moodle@babel@french@list}{acadian,french,frenchb,francais}%
+      \ifPDFTeX
+        \def\moodle@babel@french@warn{%
+          \PackageWarning{moodle}{Be careful when using pdflatex, moodle, and the
+            babel package loaded with a French-related option. Autospacing
+            yields undesired symbols in the XML. Here are three workarounds:
+            \MessageBreak 1) compile with xelatex/lualatex,\MessageBreak 2)
+            add `\NoAutoSpacing' after `\begin{quiz}', or\MessageBreak 3)
+            avoid the babel option.^^J}}%
+        \def\moodle@babel@german@warn{%
+          \PackageWarning{moodle}{Be careful when using pdflatex, moodle, and
+            the babel package loaded with a German-related option. The symbol
+            `"' is made active and your umlauts will confuse moodle. Here are
+            three workarounds:\MessageBreak 1) compile with xelatex/lualatex,
+            \MessageBreak 2) add `\string\shorthandoff{"}' after `\begin{quiz}',
+            or\MessageBreak 3) avoid the babel option.^^J}}%
+      \fi
+      \def\moodle@babel@turkish@warn{%
+        \PackageWarning{moodle}{Be careful when using moodle and the babel
+          package loaded with option `turkish'. Shorthands are likely to
+          break compilation. Here are three workarounds:\MessageBreak 1)
+          rely on `polyglossia' (XeTeX or LuaTeX),\MessageBreak 2) add
+          `\shorthandoff{=:!}' after `\begin{quiz}', or\MessageBreak
+          3) avoid the babel option.^^J}}%
+      \def\do#1{%
+        \ifstrequal{#1}{turkish}{\moodle@babel@turkish@warn}{%
+          \ifinlist{#1}{\moodle@babel@french@list}%
+            {\ifPDFTeX\moodle@babel@french@warn\fi}{%
+              \ifinlist{#1}{\moodle@babel@german@list}{%
+                \ifPDFTeX\moodle@babel@german@warn\else
+                  \gdef\moodle@babel@german@warn{%
+                    \PackageWarning{moodle}{Be careful when using moodle and
+            the babel package loaded with a German-related option that make the
+            symbol `"' active. We recommend typing umlauts with UTF-8
+            characters. By default, `\string\"a' is poorly translated in the XML
+            file. This is fixed if you define `\string\shorthandoff{"}' after
+            `\begin{quiz}'. But then `"a` will no longer work as expected.^^J}%
+                  }%
+                  \gdef\moodle@babel@german@warn@single{%
+                    \moodle@babel@german@warn
+                    \gdef\moodle@babel@german@warn@single{}%\relax
+                  }%
+                  \pretocmd{\"}%
+                    {\moodle@babel@german@warn@single}%
+                    {}%
+                    { \PackageWarning{moodle}{Umlaut patch failed.}%
+                      \moodle@babel@german@warn@single
+                    }%
+                \fi
+              }{}%
+            }
+
+        }
+      }
+      \expandafter\docsvlist\expandafter{\bbl@loaded}%
+    }%
+  }{}%
+}%
+\def\moodle@WarningOrError#1#2#3{%
+  % #1 : major version
+  % #2 : minor version
+  % #3 : feature
+  \ifnum\the\moodle@LMSmajor\the\moodle@LMSminor=\z@\relax
+    \PackageWarning{moodle}{#3 is only supported by Moodle #1.#2+}%
+  \else
+    \ifnum\numexpr 1000*\the\moodle@LMSmajor+\the\moodle@LMSminor\relax<\numexpr 1000*#1+#2\relax
+      \PackageError{moodle}{#3 is only supported by Moodle #1.#2+
+       (you declared Moodle \the\moodle@LMSmajor.\the\moodle@LMSminor)}%
+    \fi
   \fi
 }%
 \endinput

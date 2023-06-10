@@ -2,31 +2,40 @@
 <quiz>
   <question type="coderunner">
     <name>
-      <text>strlen</text>
+      <text>sumarray</text>
     </name>
     <questiontext format="html">
       <text><![CDATA[
 <p>
-Scrivere una procedura RISC-V per calcolare la lunghezza di una stringa di caratteri in C, 
-escluso il carattere terminatore. Le stringhe di caratteri in C sono memorizzate come un array di byte in memoria, 
-dove il byte '\0' (0x00) rappresenta la fine della stringa.
+Scrivere una procedura \(sumarray\) che calcoli la somma di un array di \(size\) word in memoria. 
 </p>
 
-Il seguente codice in \(C\) realizza \(strlen\) (convertilo in RISC-V):
-
+<br/>Il seguente codice in \(C\) realizza \(sumarray\) (convertilo in RISC-V):
 <pre>
-unsigned long strlen(char *str) {
-    unsigned long i;
-    for (i = 0; str[i] != '\0'; i++);
-    return i;
+int sumarray(int[] array, int size) {
+    int sum = 0;
+    for (int i = 0; i < size; i++) {
+        sum += array[i];
+    }
+    return sum;
 }
 </pre>
 
-Il valore di ritorno deve essere lasciato sul registro \(a0\).
+<br/>Come esercizio alternativo, preparare una soluzione ricorsiva seguendo il codice C riportato di seguito:
+<pre>
+int sumarray(int[] array, int size) {
+    if (size == 0) {
+        return 0;
+    } else {
+        return array[size-1] + sumarray(array, size-1);
+    }
+}
+</pre>
 
 <br><b>Attenzione:</b>
 <ul>
-    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(strlen\) (in RISC-V)</li>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(sumarray\) (in RISC-V)</li>
+    <li>Si prega di fornire solo una soluzione alla volta (ricorsiva o iterativa)</li>
     <li>Attenzione alle convenzioni di chiamata!</li>
     <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
 </ul>
@@ -34,21 +43,25 @@ Il valore di ritorno deve essere lasciato sul registro \(a0\).
 <pre>
 .globl _start
 .data
-    str: .string  "My string"
+    array: .word  1,2,3,4,5,6,7,8,9,10
+    size:  .word  10
+    
 .text
 _start:
-    # call strlen
-    la   a0, str
-    jal  ra, strlen
-
+    # chiama sumarray
+    la   a0, array
+    la   a1, size
+    lw   a1, 0(a1)
+    jal  ra, sumarray
+    
     #exit
     li   a7, 10
     ecall
 
 #****************************************************
-# completare la funzione strlen nel campo di sotto
-</pre>
+# completare la funzione sumarray nel campo di sotto
 
+</pre>
 
 ]]>
     </text>
@@ -65,23 +78,24 @@ _start:
     <showsource>0</showsource>
     <answerboxlines>18</answerboxlines>
     <answerboxcolumns>100</answerboxcolumns>
-    <answerpreload>strlen:</answerpreload>
+    <answerpreload>sumarray:</answerpreload>
     <globalextra><![CDATA[
 #*******************************************************************************
 # main()
 #*******************************************************************************
-_start:
-      # puts numbers on the saved registers
-      start_saved_registers_leaf
+_start:    
+    # puts numbers on the saved registers
+    start_saved_registers_leaf
 
-      # call strlen
-      la   a0, str
-      jal  ra, strlen
-      printreg a0, __ra0
+    # call sumarray
+    la   a0, array
+    la   a1, size
+    lw   a1, 0(a1)
+    jal  ra, sumarray
+    printreg a0, __ra0
 
-      # check whether the saved registers are preserved
-      check_saved_registers
-
+    # check whether the saved registers are preserved
+    check_saved_registers
 
 
 ]]>
@@ -92,22 +106,29 @@ _start:
     <iscombinatortemplate></iscombinatortemplate>
     <allowmultiplestdins></allowmultiplestdins>
     <answer><![CDATA[
-#*******************************************************************************
-# strlen 
-# a0 - str
-#*******************************************************************************
-strlen:
-      add  t0, zero, zero        # i = 0
-strlen_loop:
-      add  t1, t0, a0            # Add the byte offset for str[i]
-      lbu  t1, 0(t1)             # dereference str[i]
-      beq  t1, zero, strlen_end  # if str[i] == 0, break for loop
-      addi t0, t0, 1             # i++
-      j    strlen_loop           # loop
+################################################################################
+# Procedure sumarray(v) - interactive sum
+# a0 -> v address
+# a1 -> v size
+################################################################################
+sumarray:
+    addi  sp, sp, -8
+    sd    ra, 0(sp)
 
-strlen_end:
-      addi a0, t0, 0             # Move t0 into a0 to return
-      ret
+    li    t0, 0                     # final sum
+sumarray_loop:
+    ble   a1, zero, sumarray_end    # if a1 <= 0 goto end
+    lw    t1, 0(a0)                 # first element of the vector
+    add   t0, t0, t1                # sum the element
+    addi  a1, a1, -1                # decrement the counter
+    addi  a0, a0, 4                 # move to the next word in the array
+    j     sumarray_loop    
+
+sumarray_end:
+    mv    a0, t0                    # load the result
+    ld    ra, 0(sp)                 # restore the return address
+    addi  sp, sp, 8                 # restore the stack pointer
+    ret
 
 
 ]]>
@@ -143,7 +164,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "string"
+  size:  .word 16
+  array: .word 2, 1, 7, 1, 2, 2, 2, 1, 12, 1, 7, 1, 2, 2, 2, 1        
 
         ]]>
         </text>
@@ -152,12 +174,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 6</text>
+        <text>a0: 46</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "string"
+  size:  .word 16
+  array: .word 2, 1, 7, 1, 2, 2, 2, 1, 12, 1, 7, 1, 2, 2, 2, 1        
 
         ]]></text>
     </extra>
@@ -169,7 +192,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "S"
+  size:  .word 10
+  array: .word 1,2,3,4,5,6,7,8,9,10
 
         ]]>
         </text>
@@ -178,12 +202,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 1</text>
+        <text>a0: 55</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "S"
+  size:  .word 10
+  array: .word 1,2,3,4,5,6,7,8,9,10
 
         ]]></text>
     </extra>
@@ -195,7 +220,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  ""
+  size:  .word 10
+  array: .word -1,-2,-3,-4,-5,-6,-7,-8,-9,-10
 
         ]]>
         </text>
@@ -204,12 +230,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 0</text>
+        <text>a0: -55</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  ""
+  size:  .word 10
+  array: .word -1,-2,-3,-4,-5,-6,-7,-8,-9,-10
 
         ]]></text>
     </extra>
@@ -221,7 +248,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "str"
+  size:  .word 8
+  array: .word 3, 1, 4, 1, 5, 9, 2, 6
 
         ]]>
         </text>
@@ -230,12 +258,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 3</text>
+        <text>a0: 31</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "str"
+  size:  .word 8
+  array: .word 3, 1, 4, 1, 5, 9, 2, 6
 
         ]]></text>
     </extra>
@@ -247,7 +276,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "str str"
+  size:  .word 5
+  array: .word 1, 2, 3, 4, 5
 
         ]]>
         </text>
@@ -256,12 +286,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 7</text>
+        <text>a0: 15</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "str str"
+  size:  .word 5
+  array: .word 1, 2, 3, 4, 5
 
         ]]></text>
     </extra>
@@ -273,7 +304,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  " s"
+  size:  .word 1
+  array: .word 2
 
         ]]>
         </text>
@@ -287,7 +319,8 @@ strlen_end:
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  " s"
+  size:  .word 1
+  array: .word 2
 
         ]]></text>
     </extra>
@@ -299,7 +332,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "1234"
+  size:  .word 0
+  array: .space 1
 
         ]]>
         </text>
@@ -308,12 +342,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 4</text>
+        <text>a0: 0</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "1234"
+  size:  .word 0
+  array: .space 1
 
         ]]></text>
     </extra>

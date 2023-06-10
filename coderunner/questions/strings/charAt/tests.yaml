@@ -1,0 +1,34 @@
+---
+name: "charAt"
+preload: "charAt:"
+testcases:
+  - testcode: |
+      .section .data
+          str: .string "Hello World!"
+          n:   .word   6
+    expected: "a0: W"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str: .string "Hello World!"
+          n:   .word   0
+    expected: "a0: H"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str: .string "Hello World!"
+          n:   .word   1
+    expected: "a0: e"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          str: .string "Hello World!"
+          n:   .word   11
+    expected: "a0: !"
+    display: "SHOW"             
+  - testcode: |
+      .section .data
+          str: .string "V"
+          n:   .word   0
+    expected: "a0: V"
+    display: "SHOW" 

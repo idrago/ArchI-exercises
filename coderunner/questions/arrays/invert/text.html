@@ -1,0 +1,44 @@
+<p>
+Scrivere una procedura \(invert(array, size)\), che utilizzi \(swap\) (definita nell'esercizio precedente) per invertire un array in memoria.
+</p>
+
+<br/>Il seguente codice in \(C\) realizza \(invert\) (convertilo in RISC-V):
+<pre>
+void invert(int[] array, int size) {
+    int i;
+    for (i = 0; i < size/2; i++) {
+        swap(array, i, size-i-1);
+    }
+}    
+</pre>
+
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>NON INCOLLARE IL CODICE DI \(swap\) NELLA RISPOSTA</li>    
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(invert\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.data
+    size:  .word 8
+    array: .word 1,5,3,7,2,6,4,8
+.text
+_start:
+    # chiama invert
+    la   a0, array
+    la   a1, size
+    lw   a1, 0(a1)        
+    jal  ra, invert
+    
+    #exit
+    li   a7, 10
+    ecall
+
+#***************************************************
+# completare la funzione invert nel campo di sotto
+</pre>
+    

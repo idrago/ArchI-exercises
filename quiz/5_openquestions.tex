@@ -1,0 +1,103 @@
+\begin{filecontents*}{tmpcode_1.log}
+// CODICE 1:
+
+const int N = ...;
+int X[n], Y[N]; // (sizeof(int) = 1 parola)
+for (int i=0; i<N; i++)
+    Y[i] = X[i] + i;
+
+// CODICE 2:
+
+const int N = ...;
+int X[N], Y[N]; // (sizeof(int) = 1 parola)
+for (int i=0; i<N; i++)
+    Y[i] = X[0] + i;
+\end{filecontents*}
+
+\documentclass[11pt]{article}
+%\usepackage[handout, nostamp]{moodle}
+%\usepackage{catchfilebetweentags}
+\usepackage[nostamp]{moodle}
+\usepackage{graphicx}
+\usepackage{comment}
+\usepackage{fancyvrb}
+\usepackage{geometry}
+\pagestyle{empty}
+\geometry{
+ a4paper,
+ total={175mm,260mm},
+ left=15mm,
+ top=15mm,
+}
+
+\begin{document}
+
+\begin{quiz}{Teoria 1}
+
+\begin{essay}[points=7]{Gerarchia di Memoria e Cache}
+Si considerino i seguenti due frammenti di pseudo-codice:
+
+\VerbatimInput[gobble]{tmpcode_1.log}
+
+\begin{itemize}
+\item Si illustrino, in generale, i concetti di località spaziale e temporale nell'esecuzione dei programmi.
+\item Quale dei due frammenti di codice esibisce maggiore località di ciascun genere?
+\item Cosa succede nel caso in cui il processore voglia accedere ad una parola di memoria gi\`{a} presente nella cache? E cosa succede nel caso in cui non sia presente?
+\item Quali parametri si devono considerare per valutare le prestazioni delle memorie cache?
+\item In un'architettura con memoria cache, quale dei due frammenti di codice risulta in un numero più grande di ``cache hit''?
+\end{itemize}
+
+\end{essay}
+
+
+\begin{essay}[points=7]{I bus}
+In riferimento ai bus:
+\begin{itemize}
+\item Come interagiscono un dispositivo attivo e uno passivo in una comunicazione tramite bus asincrono?
+\item Perch\'{e} l'arbitraggio di un bus \`{e} necessario?
+\item Si spieghi cos'\`e l'arbitraggio di un bus con meccanismo daisy chain.
+\end{itemize}
+\end{essay}
+
+\begin{essay}[points=7]{Traduzione programmi}
+In riferimento alla traduzione di programmi:
+\begin{itemize}
+\item Perché non basta una sola lettura del codice sorgente (passata) da parte di un assemblatore?
+\item A cosa serve la tabella degli opcode ad un assemblatore?
+\item Cosa sono forward e backward references?
+\end{itemize}
+\end{essay}
+
+\begin{essay}[points=7]{Operazioni di I/O}
+In riferimento alle operazioni di Input$/$Output:
+\begin{itemize}
+\item Cos'è un driver?
+\item Descrivere l'I/O basato su DMA.
+\item Descrivere l'I/O basato su busy waiting.
+\item Descrivere l'I/O basato su interrupt.
+\end{itemize}
+\end{essay}
+
+\begin{essay}[points=7]{Livello ISA}
+In riferimento alle caratteristiche del livello ISA. Descrivere:
+\begin{itemize}
+\item Cosa si intende per ``modalità di indirizzamento''?
+\item La differenza tra ordinamento little endian e big endian dei byte all'interno di una parola;
+\item Nell'architettura RISC-V, quali sono i tipi di registri? Perché ci sono diversi tipi?
+\end{itemize}
+\end{essay}
+
+\begin{essay}[points=7]{RISC-V}
+Si consideri l'architettura RISC-V.
+
+\begin{itemize}
+\item Si descriva il ciclo di aggiornamento del Program Counter.
+\item Si spieghi come deve essere configurato il datapath (percorso dei dati) per l'esecuzione dell'operazione ``beq x11, x12, LABEL''.
+\end{itemize}
+\end{essay}
+
+\end{quiz}
+\end{document}
+
+
+

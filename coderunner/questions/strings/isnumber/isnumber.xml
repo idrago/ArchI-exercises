@@ -2,31 +2,32 @@
 <quiz>
   <question type="coderunner">
     <name>
-      <text>strlen</text>
+      <text>isnumber</text>
     </name>
     <questiontext format="html">
       <text><![CDATA[
 <p>
-Scrivere una procedura RISC-V per calcolare la lunghezza di una stringa di caratteri in C, 
-escluso il carattere terminatore. Le stringhe di caratteri in C sono memorizzate come un array di byte in memoria, 
-dove il byte '\0' (0x00) rappresenta la fine della stringa.
+Scrivere una funzione RISC-V \(isnumber\) che controlli se una stringa ricevuta come parametro è la rappresentazione di un numero intero positivo in ASCII. Controllare vuol dire: restituire 1 se la condizione è vera, 0 altrimenti.
+
+\(isnumber\) deve utilizzare la funzione \(digit\) realizzata nell'esercizio precedente.
 </p>
-
-Il seguente codice in \(C\) realizza \(strlen\) (convertilo in RISC-V):
-
-<pre>
-unsigned long strlen(char *str) {
-    unsigned long i;
-    for (i = 0; str[i] != '\0'; i++);
-    return i;
-}
-</pre>
 
 Il valore di ritorno deve essere lasciato sul registro \(a0\).
 
+<br/><br/>Il seguente codice in \(C\) realizza \(isnumber\) (convertilo in RISC-V):
+
+<pre>
+int isnumber(char *numstr) {
+    for (int i = 0; numstr[i] != '\0'; i++);
+        if (!digit(numstr[i]))
+            return 0;
+    return 1;
+}
+</pre>
+
 <br><b>Attenzione:</b>
 <ul>
-    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(strlen\) (in RISC-V)</li>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(isnumber\) (in RISC-V)</li>
     <li>Attenzione alle convenzioni di chiamata!</li>
     <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
 </ul>
@@ -34,19 +35,19 @@ Il valore di ritorno deve essere lasciato sul registro \(a0\).
 <pre>
 .globl _start
 .data
-    str: .string  "My string"
+    numstr: .string  "1234"
 .text
 _start:
-    # call strlen
-    la   a0, str
-    jal  ra, strlen
+    # call isnumber
+    la   a0, numstr
+    jal  ra, isnumber
 
     #exit
     li   a7, 10
     ecall
 
 #****************************************************
-# completare la funzione strlen nel campo di sotto
+# completare la funzione isnumber nel campo di sotto
 </pre>
 
 
@@ -65,22 +66,40 @@ _start:
     <showsource>0</showsource>
     <answerboxlines>18</answerboxlines>
     <answerboxcolumns>100</answerboxcolumns>
-    <answerpreload>strlen:</answerpreload>
+    <answerpreload>isnumber:</answerpreload>
     <globalextra><![CDATA[
 #*******************************************************************************
 # main()
 #*******************************************************************************
 _start:
-      # puts numbers on the saved registers
-      start_saved_registers_leaf
+    # puts numbers on the saved registers
+    start_saved_registers_nonleaf
 
-      # call strlen
-      la   a0, str
-      jal  ra, strlen
-      printreg a0, __ra0
+    # call isnumber
+    la   a0, numstr
+    jal  ra, isnumber
+    printreg a0, __ra0
 
-      # check whether the saved registers are preserved
-      check_saved_registers
+    # check whether the saved registers are preserved
+    check_saved_registers
+
+#*******************************************************************************
+# digit
+#
+# a0 - char
+#*******************************************************************************
+digit:
+    li t0, 48
+    li t1, 57
+    blt a0, t0, return_0
+    bgt a0, t1, return_0
+    li a0, 1
+    exit_required_leaf_function
+    ret
+return_0:
+    li a0, 0
+    exit_required_leaf_function
+    ret
 
 
 
@@ -93,21 +112,35 @@ _start:
     <allowmultiplestdins></allowmultiplestdins>
     <answer><![CDATA[
 #*******************************************************************************
-# strlen 
-# a0 - str
+# isnumber
+#
+# a0 -> d
 #*******************************************************************************
-strlen:
-      add  t0, zero, zero        # i = 0
-strlen_loop:
-      add  t1, t0, a0            # Add the byte offset for str[i]
-      lbu  t1, 0(t1)             # dereference str[i]
-      beq  t1, zero, strlen_end  # if str[i] == 0, break for loop
-      addi t0, t0, 1             # i++
-      j    strlen_loop           # loop
-
-strlen_end:
-      addi a0, t0, 0             # Move t0 into a0 to return
-      ret
+isnumber:
+    addi sp, sp, -24
+    sd ra, 0(sp)
+    sd a0, 8(sp)
+    sd s1, 16(sp)
+    li s1, 0
+loop_on_string:
+    lbu a0, 0(a0)
+    beq a0, zero, isnum_return_1
+    jal digit
+    beq a0, zero, isnum_return_0
+    ld a0, 8(sp)
+    addi s1, s1, 1
+    add a0, a0, s1
+    j loop_on_string
+isnum_return_0:
+    li a0, 0
+    j isnumber_return
+isnum_return_1:
+    li a0, 1
+isnumber_return:
+    ld ra, 0(sp)
+    ld s1, 16(sp)
+    addi sp, sp, 24
+    ret
 
 
 ]]>
@@ -143,59 +176,7 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "string"
-
-        ]]>
-        </text>
-    </testcode>
-    <stdin>
-        <text></text>
-    </stdin>
-    <expected>
-        <text>a0: 6</text>
-    </expected>
-    <extra>
-        <text><![CDATA[
-.section .data
-    str: .string  "string"
-
-        ]]></text>
-    </extra>
-    <display>
-        <text>SHOW</text>
-    </display>
-</testcase>
-<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
-    <testcode>
-        <text><![CDATA[
-.section .data
-    str: .string  "S"
-
-        ]]>
-        </text>
-    </testcode>
-    <stdin>
-        <text></text>
-    </stdin>
-    <expected>
-        <text>a0: 1</text>
-    </expected>
-    <extra>
-        <text><![CDATA[
-.section .data
-    str: .string  "S"
-
-        ]]></text>
-    </extra>
-    <display>
-        <text>SHOW</text>
-    </display>
-</testcase>
-<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
-    <testcode>
-        <text><![CDATA[
-.section .data
-    str: .string  ""
+    numstr: .string "s"
 
         ]]>
         </text>
@@ -209,7 +190,7 @@ strlen_end:
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  ""
+    numstr: .string "s"
 
         ]]></text>
     </extra>
@@ -221,7 +202,7 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "str"
+    numstr: .string "0"
 
         ]]>
         </text>
@@ -230,12 +211,12 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 3</text>
+        <text>a0: 1</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "str"
+    numstr: .string "0"
 
         ]]></text>
     </extra>
@@ -247,7 +228,7 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "str str"
+    numstr: .string "1234567890"
 
         ]]>
         </text>
@@ -256,12 +237,12 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 7</text>
+        <text>a0: 1</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "str str"
+    numstr: .string "1234567890"
 
         ]]></text>
     </extra>
@@ -273,7 +254,7 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  " s"
+    numstr: .string "9"
 
         ]]>
         </text>
@@ -282,12 +263,12 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 2</text>
+        <text>a0: 1</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  " s"
+    numstr: .string "9"
 
         ]]></text>
     </extra>
@@ -299,7 +280,7 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "1234"
+    numstr: .string "5s7"
 
         ]]>
         </text>
@@ -308,12 +289,64 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 4</text>
+        <text>a0: 0</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "1234"
+    numstr: .string "5s7"
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    numstr: .string "o"
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 0</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    numstr: .string "o"
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    numstr: .string "."
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 0</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    numstr: .string "."
 
         ]]></text>
     </extra>

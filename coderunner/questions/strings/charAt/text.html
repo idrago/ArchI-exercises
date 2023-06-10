@@ -1,0 +1,44 @@
+<p>Usando il linguaggio assemblativo del RISC-V, scrivere una funzione \(charAt\) che riceva:</p>
+<ul>
+    <li>sul registro \(a0\), <b>l'indirizzo</b> in memoria di una stringa (array di byte)</li>
+    <li>sul registro \(a1\), un numero intero \(n\)</li>
+</ul>
+
+<br/>\(charAt\) ritorna il carattere nella posizione \(n\) della stringa \(str\).
+<br/>Il seguente codice in \(C\) realizza \(charAt\) (convertilo in RISC-V):
+<pre>
+char charAt(char *str, int n) {
+    return str[n];
+}
+</pre>
+
+<br/>
+<b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(charAt\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.data
+    str: .string "Hello World!"
+    n:   .word   6
+
+.text
+_start:
+    # call charAt
+    la  a0, str
+    la  a1, n
+    lw  a1, 0(a1)
+    jal ra, charAt
+
+    #exit
+    li   a7, 10
+    ecall
+
+#******************************************
+# completare la funzione nel campo di sotto
+</pre>
+    

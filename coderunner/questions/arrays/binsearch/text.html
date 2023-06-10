@@ -1,0 +1,58 @@
+<p>La ricerca dicotomica è un efficiente algoritmo che trova un dato elemento in un array ordinato. Ad ogni iterazione l'algoritmo confronta l'elemento in input con l'elemento che si trova nella posizione centrale della parte dell'array da visitare. Se tale elemento è uguale all'elemento di input l'algoritmo termina con successo. Se tale elemento è minore dell'elemento di input si continua la ricerca considerando solo la prima metà dell'array, in caso contrario si considera la seconda metà dell'array. L'algoritmo termina quando si è trovato l'elemento che si sta cercando oppure non è possibile continuare perché si è certi che l'elemento non si trova nell'array.
+</p>
+
+<p>
+Si implementi la ricerca dicotomica in RISC-V. Di seguito trovate la funzione in C che implementa tale algoritmo.
+</p>
+
+<pre>
+int binsearch(int array[], int size, int needle) {
+    int low = 0;
+    int high = size - 1;
+
+    while (low <= high) {
+        int mid = (low + high) / 2;
+
+        if (array[mid] == needle) {
+            return mid;
+        } else if (array[mid] < needle) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+    // needle not found
+    return -1;
+}
+</pre>
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(binsearch\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.data
+    needle: .word 2
+    size:   .word 8
+    array:  .word 1,2,3,7,9,10,11,15
+.text
+_start:
+    # chiama binsearch
+    la   a0, array
+    la   a1, size
+    lw   a1, 0(a1)
+    la   a2, needle
+    lw   a2, 0(a2)
+    jal  ra, binsearch
+    
+    #exit
+    li   a7, 10
+    ecall
+
+#***************************************************
+# completare la funzione binsearch nel campo di sotto
+</pre>

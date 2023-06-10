@@ -1,0 +1,34 @@
+<p>
+Scrivere una funzione RISC-V \(digit\) che verifichi se un byte passato come
+parametro nel registro \(a0\) rappresenta un carattere cifra (0-9) nella codifica ASCII.
+Verificare vuol dire: restituire 1 se la condizione è vera, 0 altrimenti.
+</p>
+
+Il valore di ritorno deve essere lasciato sul registro \(a0\).
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(digit\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.data
+    d: .byte '1'
+.text
+_start:
+    # call digit
+    la   a0, d
+    lbu  a0, 0(a0)
+    jal  ra, digit
+
+    #exit
+    li   a7, 10
+    ecall
+
+#****************************************************
+# completare la funzione digit nel campo di sotto
+</pre>
+

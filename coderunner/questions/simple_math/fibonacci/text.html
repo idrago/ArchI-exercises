@@ -1,0 +1,41 @@
+<p>
+Tradurre il seguente frammento di codice C in codice assembly RISC-V.
+</p>
+<pre>
+int fib(int n) {
+	if (n==0)
+		return 0;
+	else if (n==1)
+		return 1;
+	else
+		return fib(n–1) + fib(n–2);
+}
+</pre>
+
+Il valore di ritorno deve essere lasciato sul registro \(a0\).
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(fib\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.data
+    num: .dword 5
+.text
+_start:
+    # call fib
+    la    a0, num
+    ld    a0, 0(a0)
+    jal   ra, fib
+
+    #exit
+    li    a7, 10
+    ecall
+
+#****************************************************
+# completare la funzione fib nel campo di sotto
+</pre>

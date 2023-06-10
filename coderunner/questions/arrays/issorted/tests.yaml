@@ -1,0 +1,40 @@
+---
+name: "issorted"
+preload: "issorted:"
+testcases:
+  - testcode: |
+      .section .data
+          size: .word 1
+          array: .word 4
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          size: .word 2
+          array: .word 1, 2
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          size: .word 5
+          array: .word 1, 2, 5, 4, 3
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          size: .word 5
+          array: .word 1, 2, 3, 4, 5
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          size: .word 2
+          array: .word 2, 1
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          size: .word 2
+          array: .word 1, 1
+    expected: "a0: 1"
+    display: "SHOW"    

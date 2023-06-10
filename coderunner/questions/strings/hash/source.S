@@ -10,33 +10,37 @@ _start:
 
       # call strlen
       la   a0, str
-      jal  ra, strlen
+      jal  ra, hash
       printreg a0, __ra0
 
       # check whether the saved registers are preserved
       check_saved_registers
 
-
 ###ANSWER###
 #*******************************************************************************
-# strlen 
-# a0 - str
+# hash()
+#    a0: pointer to string
 #*******************************************************************************
-strlen:
-      add  t0, zero, zero        # i = 0
-strlen_loop:
-      add  t1, t0, a0            # Add the byte offset for str[i]
-      lbu  t1, 0(t1)             # dereference str[i]
-      beq  t1, zero, strlen_end  # if str[i] == 0, break for loop
-      addi t0, t0, 1             # i++
-      j    strlen_loop           # loop
+hash:
+      addi  sp, sp, -40
+      sd    ra, 0(sp)
 
-strlen_end:
-      addi a0, t0, 0             # Move t0 into a0 to return
+      lbu   t0,0(a0)
+      li    t1,5381
+hash_loop:
+      beq   t0,zero,hash_exit
+      slli  t2,t1,5
+      add   t1,t2,t1
+      add   t1,t1,t0
+      addi  a0,a0,1
+      lbu   t0,0(a0) 
+      j     hash_loop
+hash_exit:
+      mv    a0,t1
+      ld    ra, 0(sp)
+      addi  sp, sp, 40
       ret
 
 ###TESTCASE###
 .section .data
-      str: .string  "My string"
-
-
+    str: .string "V"

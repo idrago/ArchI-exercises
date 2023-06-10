@@ -1,0 +1,56 @@
+<p>
+Scrivere una procedura \(sumarray\) che calcoli la somma di un array di \(size\) word in memoria. 
+</p>
+
+<br/>Il seguente codice in \(C\) realizza \(sumarray\) (convertilo in RISC-V):
+<pre>
+int sumarray(int[] array, int size) {
+    int sum = 0;
+    for (int i = 0; i < size; i++) {
+        sum += array[i];
+    }
+    return sum;
+}
+</pre>
+
+<br/>Come esercizio alternativo, preparare una soluzione ricorsiva seguendo il codice C riportato di seguito:
+<pre>
+int sumarray(int[] array, int size) {
+    if (size == 0) {
+        return 0;
+    } else {
+        return array[size-1] + sumarray(array, size-1);
+    }
+}
+</pre>
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(sumarray\) (in RISC-V)</li>
+    <li>Si prega di fornire solo una soluzione alla volta (ricorsiva o iterativa)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.data
+    array: .word  1,2,3,4,5,6,7,8,9,10
+    size:  .word  10
+    
+.text
+_start:
+    # chiama sumarray
+    la   a0, array
+    la   a1, size
+    lw   a1, 0(a1)
+    jal  ra, sumarray
+    
+    #exit
+    li   a7, 10
+    ecall
+
+#****************************************************
+# completare la funzione sumarray nel campo di sotto
+
+</pre>

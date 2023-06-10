@@ -1,0 +1,35 @@
+---
+name: "fibonacci"
+preload: "fib:"
+testcases:
+  - testcode: |
+        .section .data
+            num: .dword 1
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+        .section .data
+            num: .dword 2
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+        .section .data
+            num: .dword 3
+    expected: "a0: 2"
+    display: "SHOW"
+  - testcode: |
+        .section .data
+            num: .dword 5
+    expected: "a0: 5"
+    display: "SHOW"
+  - testcode: |
+        .section .data
+            num: .dword 10
+    expected: "a0: 55"
+    display: "SHOW"
+  - testcode: |
+        .section .data
+            num: .dword 20
+    expected: "a0: 6765"
+    display: "SHOW"
+

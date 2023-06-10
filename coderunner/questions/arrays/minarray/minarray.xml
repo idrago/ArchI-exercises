@@ -2,23 +2,29 @@
 <quiz>
   <question type="coderunner">
     <name>
-      <text>strlen</text>
+      <text>minarray</text>
     </name>
     <questiontext format="html">
       <text><![CDATA[
 <p>
-Scrivere una procedura RISC-V per calcolare la lunghezza di una stringa di caratteri in C, 
-escluso il carattere terminatore. Le stringhe di caratteri in C sono memorizzate come un array di byte in memoria, 
-dove il byte '\0' (0x00) rappresenta la fine della stringa.
+Scrivere una funzione \(minarray(array, size)\) che restituisca l'indice del valore minimo presente nell'array.
 </p>
 
-Il seguente codice in \(C\) realizza \(strlen\) (convertilo in RISC-V):
-
+Il seguente codice in \(C\) realizza \(minarray\) (convertilo in RISC-V):
 <pre>
-unsigned long strlen(char *str) {
-    unsigned long i;
-    for (i = 0; str[i] != '\0'; i++);
-    return i;
+int minarray(int[] array, int size) {
+    int min_idx = 0;
+    int min_val = array[0];
+    int i = 1;
+
+    while (i < size) {
+        if (array[i] < min_val) {
+            min_idx = i;
+            min_val = array[i];
+        }
+        ++i;
+    }
+    return min_idx;
 }
 </pre>
 
@@ -26,27 +32,31 @@ Il valore di ritorno deve essere lasciato sul registro \(a0\).
 
 <br><b>Attenzione:</b>
 <ul>
-    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(strlen\) (in RISC-V)</li>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(minarray\) (in RISC-V)</li>
     <li>Attenzione alle convenzioni di chiamata!</li>
     <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
 </ul>
 
 <pre>
-.globl _start
-.data
-    str: .string  "My string"
-.text
-_start:
-    # call strlen
-    la   a0, str
-    jal  ra, strlen
-
-    #exit
-    li   a7, 10
-    ecall
+  .globl _start
+  .data
+    size:  .word  10
+    array: .word  3,1,6,6,23,17,9,25,3,4
+  
+  .text
+  _start:
+      # chiama minarray
+      la   a0, array
+      la   a1, size
+      lw   a1, 0(a1)
+      jal  ra, minarray
+      
+      #exit
+      li   a7, 10
+      ecall   
 
 #****************************************************
-# completare la funzione strlen nel campo di sotto
+# completare la funzione minarray nel campo di sotto
 </pre>
 
 
@@ -65,23 +75,26 @@ _start:
     <showsource>0</showsource>
     <answerboxlines>18</answerboxlines>
     <answerboxcolumns>100</answerboxcolumns>
-    <answerpreload>strlen:</answerpreload>
+    <answerpreload>minarray:</answerpreload>
     <globalextra><![CDATA[
 #*******************************************************************************
 # main()
 #*******************************************************************************
-_start:
-      # puts numbers on the saved registers
-      start_saved_registers_leaf
+_start:    
+    # puts numbers on the saved registers
+    start_saved_registers_leaf
 
-      # call strlen
-      la   a0, str
-      jal  ra, strlen
-      printreg a0, __ra0
+    # chiama minarray
+    la   a0, array
+    la   a1, size
+    lw   a1, 0(a1)
+    jal  ra, minarray
 
-      # check whether the saved registers are preserved
-      check_saved_registers
+    # print results
+    printreg a0, __ra0
 
+    # check whether the saved registers are preserved
+    check_saved_registers
 
 
 ]]>
@@ -92,22 +105,37 @@ _start:
     <iscombinatortemplate></iscombinatortemplate>
     <allowmultiplestdins></allowmultiplestdins>
     <answer><![CDATA[
-#*******************************************************************************
-# strlen 
-# a0 - str
-#*******************************************************************************
-strlen:
-      add  t0, zero, zero        # i = 0
-strlen_loop:
-      add  t1, t0, a0            # Add the byte offset for str[i]
-      lbu  t1, 0(t1)             # dereference str[i]
-      beq  t1, zero, strlen_end  # if str[i] == 0, break for loop
-      addi t0, t0, 1             # i++
-      j    strlen_loop           # loop
+################################################################################
+# Procedure minarray
+#   Input:  a0 = array, a1 = size
+#   Output: a0 = min_idx
+################################################################################
+minarray:
+  li   t0, 0     # min_idx
+  lw   t1, 0(a0) # min_value
+  li   t2, 1     # i
 
-strlen_end:
-      addi a0, t0, 0             # Move t0 into a0 to return
-      ret
+  minarray_loop:
+    # check if i == size
+    beq  t2, a1, minarray_end
+
+    # check if array[i] < min
+    slli t3, t2, 2
+    add  t3, a0, t3
+    lw   t3, 0(t3)
+    bgt  t3, t1, minarray_continue
+
+    # update min
+    mv   t1, t3
+    mv   t0, t2
+
+  minarray_continue:    
+    addi t2, t2, 1  # increment i
+  j minarray_loop
+
+  minarray_end:
+    mv   a0, t0
+    jr   ra
 
 
 ]]>
@@ -143,59 +171,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "string"
-
-        ]]>
-        </text>
-    </testcode>
-    <stdin>
-        <text></text>
-    </stdin>
-    <expected>
-        <text>a0: 6</text>
-    </expected>
-    <extra>
-        <text><![CDATA[
-.section .data
-    str: .string  "string"
-
-        ]]></text>
-    </extra>
-    <display>
-        <text>SHOW</text>
-    </display>
-</testcase>
-<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
-    <testcode>
-        <text><![CDATA[
-.section .data
-    str: .string  "S"
-
-        ]]>
-        </text>
-    </testcode>
-    <stdin>
-        <text></text>
-    </stdin>
-    <expected>
-        <text>a0: 1</text>
-    </expected>
-    <extra>
-        <text><![CDATA[
-.section .data
-    str: .string  "S"
-
-        ]]></text>
-    </extra>
-    <display>
-        <text>SHOW</text>
-    </display>
-</testcase>
-<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
-    <testcode>
-        <text><![CDATA[
-.section .data
-    str: .string  ""
+    size: .word 1
+    array: .word 1
 
         ]]>
         </text>
@@ -209,7 +186,8 @@ strlen_end:
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  ""
+    size: .word 1
+    array: .word 1
 
         ]]></text>
     </extra>
@@ -221,7 +199,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "str"
+    size: .word 2
+    array: .word 1, 2
 
         ]]>
         </text>
@@ -230,12 +209,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 3</text>
+        <text>a0: 0</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "str"
+    size: .word 2
+    array: .word 1, 2
 
         ]]></text>
     </extra>
@@ -247,7 +227,8 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  "str str"
+    size: .word 5
+    array: .word 1, 2, 5, 4, 3
 
         ]]>
         </text>
@@ -256,12 +237,13 @@ strlen_end:
         <text></text>
     </stdin>
     <expected>
-        <text>a0: 7</text>
+        <text>a0: 0</text>
     </expected>
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  "str str"
+    size: .word 5
+    array: .word 1, 2, 5, 4, 3
 
         ]]></text>
     </extra>
@@ -273,7 +255,36 @@ strlen_end:
     <testcode>
         <text><![CDATA[
 .section .data
-    str: .string  " s"
+    size: .word 5
+    array: .word 2, 1, 3, 4, 5
+
+        ]]>
+        </text>
+    </testcode>
+    <stdin>
+        <text></text>
+    </stdin>
+    <expected>
+        <text>a0: 1</text>
+    </expected>
+    <extra>
+        <text><![CDATA[
+.section .data
+    size: .word 5
+    array: .word 2, 1, 3, 4, 5
+
+        ]]></text>
+    </extra>
+    <display>
+        <text>SHOW</text>
+    </display>
+</testcase>
+<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
+    <testcode>
+        <text><![CDATA[
+.section .data
+    size: .word 3
+    array: .word 2, 1, 0
 
         ]]>
         </text>
@@ -287,33 +298,8 @@ strlen_end:
     <extra>
         <text><![CDATA[
 .section .data
-    str: .string  " s"
-
-        ]]></text>
-    </extra>
-    <display>
-        <text>SHOW</text>
-    </display>
-</testcase>
-<testcase testtype="0" useasexample="0" hiderestiffail="0" mark="1.00">
-    <testcode>
-        <text><![CDATA[
-.section .data
-    str: .string  "1234"
-
-        ]]>
-        </text>
-    </testcode>
-    <stdin>
-        <text></text>
-    </stdin>
-    <expected>
-        <text>a0: 4</text>
-    </expected>
-    <extra>
-        <text><![CDATA[
-.section .data
-    str: .string  "1234"
+    size: .word 3
+    array: .word 2, 1, 0
 
         ]]></text>
     </extra>

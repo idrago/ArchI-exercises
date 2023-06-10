@@ -6,15 +6,15 @@ import subprocess
 from yaml.loader import SafeLoader
 
 if len(sys.argv) != 3:
-    print("Usage: ", os.path.basename(__file__), "exercize_folder", "output_xml")
+    print("Usage: ", os.path.basename(__file__), "exercize_folder", "output.xml")
     exit(1)
 
 TEMPLATE="moodle_template.xml"
-SOURCE=sys.argv[1]+"/source.S" 
-TEST=sys.argv[1]+"/tests.yaml" 
-TEXT=sys.argv[1]+"/text.html" 
+SOURCE=sys.argv[1]+"/source.S"
+TEST=sys.argv[1]+"/tests.yaml"
+TEXT=sys.argv[1]+"/text.html"
 
-if not os.path.exists(SOURCE) or not os.path.exists(TEST) or not os.path.exists(TEXT) or not os.path.exists(TEMPLATE): 
+if not os.path.exists(SOURCE) or not os.path.exists(TEST) or not os.path.exists(TEXT) or not os.path.exists(TEMPLATE):
     print(sys.argv[1], " does not contain all files needed for generating a question")
     exit(1)
 
@@ -67,5 +67,5 @@ xmlfinal = xmlfinal.replace("###NAME###", yamlsetup["name"])
 xmlfinal = xmlfinal.replace("###PRELOAD###", yamlsetup["preload"])
 
 #print (xmlfinal)
-dstfile = open(sys.argv[2], "w+")
+dstfile = open(sys.argv[1] + "/" + sys.argv[2], "w+")
 dstfile.writelines(xmlfinal)

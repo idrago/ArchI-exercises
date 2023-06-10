@@ -8,35 +8,41 @@ _start:
       # puts numbers on the saved registers
       start_saved_registers_leaf
 
-      # call strlen
+      # call charAt
       la   a0, str
-      jal  ra, strlen
-      printreg a0, __ra0
+      la   a1, n
+      lw   a1, 0(a1)
+      jal  ra, charAt
+
+      # check the return value
+      la   a1, str
+      sb   a0, 0(a1)
+      addi a1, a1, 1
+      sb   zero, 0(a1)
+      
+      la   a0, __ra0
+      jal  __printstr
+      la   a0, str
+      call __printstr
+      la   a0, __nl
+      call __printstr
 
       # check whether the saved registers are preserved
       check_saved_registers
 
-
 ###ANSWER###
 #*******************************************************************************
-# strlen 
-# a0 - str
+# charAt()
+#    a0: pointer to string
+#    a1: index
 #*******************************************************************************
-strlen:
-      add  t0, zero, zero        # i = 0
-strlen_loop:
-      add  t1, t0, a0            # Add the byte offset for str[i]
-      lbu  t1, 0(t1)             # dereference str[i]
-      beq  t1, zero, strlen_end  # if str[i] == 0, break for loop
-      addi t0, t0, 1             # i++
-      j    strlen_loop           # loop
-
-strlen_end:
-      addi a0, t0, 0             # Move t0 into a0 to return
+charAt:
+      add  a0, a0, a1
+      lbu  a0, 0(a0)
       ret
 
 ###TESTCASE###
 .section .data
-      str: .string  "My string"
-
-
+    str: .ascii "Hello World!"
+    n:   .word   5
+      

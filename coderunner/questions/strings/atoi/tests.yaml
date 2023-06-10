@@ -1,0 +1,29 @@
+---
+name: "atoi"
+preload: "atoi:"
+testcases:
+  - testcode: |
+      .section .data
+          numstr: .string "1"
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          numstr: .string "12"
+    expected: "a0: 12"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          numstr: .string "1234567890"
+    expected: "a0: 1234567890"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          numstr: .string "00001"
+    expected: "a0: 1"
+    display: "SHOW"    
+  - testcode: |
+      .section .data
+          numstr: .string ""
+    expected: "a0: 0"
+    display: "SHOW"

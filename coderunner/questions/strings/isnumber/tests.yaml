@@ -1,0 +1,40 @@
+---
+name: "isnumber"
+preload: "isnumber:"
+testcases:
+  - testcode: |
+      .section .data
+          numstr: .string "s"
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          numstr: .string "0"
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          numstr: .string "1234567890"
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          numstr: .string "9"
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          numstr: .string "5s7"
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          numstr: .string "o"
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          numstr: .string "."
+    expected: "a0: 0"
+    display: "SHOW"
+

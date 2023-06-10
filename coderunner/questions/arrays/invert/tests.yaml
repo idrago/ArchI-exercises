@@ -1,0 +1,28 @@
+---
+name: "invert"
+preload: "invert:"
+testcases:
+  - testcode: |
+      .section .data
+          size:  .word 8
+          array: .word 1,2,3,4,5,6,7,8
+    expected: "array = 8 7 6 5 4 3 2 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          size:  .word 2
+          array: .word 1,5
+    expected: "array = 5 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          size:  .word 8
+          array: .word 1,5,3,7,2,6,4,8
+    expected: "array = 8 4 6 2 7 3 5 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          size:  .word 5
+          array: .word 1,5,3,7,2
+    expected: "array = 2 7 3 5 1"
+    display: "SHOW"

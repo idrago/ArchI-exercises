@@ -1,0 +1,53 @@
+<p>
+Scrivere una funzione \(minarray(array, size)\) che restituisca l'indice del valore minimo presente nell'array.
+</p>
+
+Il seguente codice in \(C\) realizza \(minarray\) (convertilo in RISC-V):
+<pre>
+int minarray(int[] array, int size) {
+    int min_idx = 0;
+    int min_val = array[0];
+    int i = 1;
+
+    while (i < size) {
+        if (array[i] < min_val) {
+            min_idx = i;
+            min_val = array[i];
+        }
+        ++i;
+    }
+    return min_idx;
+}
+</pre>
+
+Il valore di ritorno deve essere lasciato sul registro \(a0\).
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(minarray\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+  .globl _start
+  .data
+    size:  .word  10
+    array: .word  3,1,6,6,23,17,9,25,3,4
+  
+  .text
+  _start:
+      # chiama minarray
+      la   a0, array
+      la   a1, size
+      lw   a1, 0(a1)
+      jal  ra, minarray
+      
+      #exit
+      li   a7, 10
+      ecall   
+
+#****************************************************
+# completare la funzione minarray nel campo di sotto
+</pre>
+

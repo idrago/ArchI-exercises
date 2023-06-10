@@ -1,0 +1,39 @@
+---
+name: "digit"
+preload: "digit:"
+testcases:
+  - testcode: |
+      .section .data
+          d: .byte 's'
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          d: .byte '0'
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          d: .byte '9'
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          d: .byte '3'
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          d: .byte 'z'
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          d: .byte '/'
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          d: .byte ':'
+    expected: "a0: 0"
+    display: "SHOW"

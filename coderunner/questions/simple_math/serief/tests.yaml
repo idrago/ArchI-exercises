@@ -1,0 +1,44 @@
+---
+name: "serief"
+preload: "serief:"
+testcases:
+  - testcode: |
+      .section .data
+        num: .dword 1
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num: .dword 2
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num: .dword 3
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num: .dword 4
+    expected: "a0: 3"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num: .dword 5
+    expected: "a0: 5"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num: .dword 6
+    expected: "a0: 9"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num: .dword 7
+    expected: "a0: 17"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        num: .dword 8
+    expected: "a0: 31"
+    display: "SHOW"    

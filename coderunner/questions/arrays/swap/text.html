@@ -1,0 +1,46 @@
+<p>
+Scrivere una procedura \(swap(array, x, y)\) che scambi i valori di  \(array[x]\) e \(array[y]\), dove \(array\) è un indirizzo in memoria.
+</p>
+
+<br/>Il seguente codice in \(C\) realizza \(swap\) (convertilo in RISC-V):
+<pre>
+void swap(int array[], int x, int y) {
+    int temp = array[x];
+    array[x] = array[y];
+    array[y] = temp;
+}
+</pre>
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(swap\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.data
+    size:  .word 8
+    array: .word 1,5,3,7,2,6,4,8
+    x:     .word 0
+    y:     .word 1
+    
+.text
+_start:
+    # chiama swap
+    la   a0, array
+    la   a1, x
+    lw   a1, 0(a1)
+    la   a2, y
+    lw   a2, 0(a2)
+    jal  ra, swap
+    
+    #exit
+    li   a7, 10
+    ecall
+
+#***************************************************
+# completare la funzione swap nel campo di sotto
+
+</pre>

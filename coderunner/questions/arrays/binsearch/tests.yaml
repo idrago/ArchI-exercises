@@ -1,0 +1,60 @@
+---
+name: "binsearch"
+preload: "binsearch:"
+testcases:
+  - testcode: |
+      .section .data
+          needle: .word 1
+          size:   .word 8
+          array:  .word 1,5,7,9,11,17,19,23
+    expected: "a0: 0"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          needle: .word 5
+          size:   .word 8
+          array:  .word 1,5,7,9,11,17,19,23
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          needle: .word 23
+          size:   .word 8
+          array:  .word 1,5,7,9,11,17,19,23
+    expected: "a0: 7"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          needle: .word 0
+          size:   .word 8
+          array:  .word 1,5,7,9,11,17,19,23
+    expected: "a0: -1"
+    display: "SHOW"    
+  - testcode: |
+      .section .data
+          needle: .word 1
+          size:   .word 1
+          array:  .word 1
+    expected: "a0: 0"
+    display: "SHOW"    
+  - testcode: |
+      .section .data
+          needle: .word 0
+          size:   .word 1
+          array:  .word 1
+    expected: "a0: -1"
+    display: "SHOW"    
+  - testcode: |
+      .section .data
+          needle: .word 5
+          size:   .word 4
+          array:  .word 1,5,7,9
+    expected: "a0: 1"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+          needle: .word 9
+          size:   .word 4
+          array:  .word 1,5,7,9
+    expected: "a0: 3"
+    display: "SHOW"    

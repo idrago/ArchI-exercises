@@ -1,0 +1,28 @@
+---
+name: "strcpy"
+preload: "strcpy:"
+testcases:
+  - testcode: |
+      .section .data
+        srcstr: .string  "string to be copied"
+        dststr: .string  "destination string is long enough"
+    expected: "dststr: string to be copied"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        srcstr: .string  ""
+        dststr: .string  "destination string is long enough"
+    expected: "dststr: "
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        srcstr: .string  "s"
+        dststr: .string  "destination string is long enough"
+    expected: "dststr: s"
+    display: "SHOW"
+  - testcode: |
+      .section .data
+        srcstr: .string  "test"
+        dststr: .string  "test"
+    expected: "dststr: test"
+    display: "SHOW"    

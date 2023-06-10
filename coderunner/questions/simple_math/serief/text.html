@@ -1,0 +1,37 @@
+<p>
+Utilizzando il linguaggio assemblativo RISC-V, scrivere un metodo ricorsivo \(serief\) che riceva come parametro n, intero strettamente positivo (non è necessario verificare se il valore del parametro attuale è veramente positivo), restituendo il valore dell'n-esimo elemento della serie numerica così definita:
+</p>
+
+\(f(1) = 1\)<br/>
+\(f(2) = 1\)<br/>
+\(f(3) = 1\)<br/>
+\(f(x) = f(x-1) + f(x-2) + f(x-3)\), per \(x>3\)<br/>
+
+<br/>
+Il valore di ritorno deve essere lasciato sul registro \(a0\).
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>Incollare nel campo di sotto soltanto il contenuto della funzione \(serief\) (in RISC-V)</li>
+    <li>Attenzione alle convenzioni di chiamata!</li>
+    <li>Usare il seguente codice "main" per sviluppo e debugging nel simulatore RARS</li>
+</ul>
+
+<pre>
+.globl _start
+.data
+    num: .dword 10
+.text
+_start:
+    # call serief
+    la    a0, num
+    lw    a0, 0(a0)
+    jal   ra, serief
+
+    #exit
+    li    a7, 10
+    ecall
+
+#****************************************************
+# completare la funzione serief nel campo di sotto
+</pre>
