@@ -6,7 +6,10 @@ Welcome to the RISC-V Programming Exercises Repository for Computer Architecture
 
 Quizzes are standard Moodle questions written using LaTeX, while programming exercises rely on a couple of Python scripts to generate Moodle CodeRunner questions.
 
-The programming exercises are structured using a pipeline illustrated in the diagram below. This system includes two main components:
+The programming exercises are structured using a pipeline illustrated in the diagram below. 
+![Question generation pipeline](images/architecture.png)
+
+This system includes two main components:
 
 ### Checker
 
