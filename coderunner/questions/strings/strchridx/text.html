@@ -6,9 +6,9 @@ Scrivere una procedura RISC-V \(strchridx(str, c)\) per restituire <b>l'indice</
 Il seguente codice in \(C\) realizza \(strchridx\) (convertilo in RISC-V):
 
 <pre>
-unsigned long strchridx(char *str, char c) {
-    unsigned long i = 0;
-    while (str[i] != '\0' and str[i] != 'c') { 
+long long strchridx(char *str, char c) {
+    long long i = 0;
+    while (str[i] != '\0' and str[i] != c) { 
         i++;
     }
     if (str[i] == '\0') { 
