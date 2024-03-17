@@ -1,0 +1,261 @@
+\documentclass[11pt]{article}
+%\usepackage[handout, nostamp]{moodle}
+%\usepackage{catchfilebetweentags}
+\usepackage[nostamp]{moodle}
+\usepackage{graphicx}
+\usepackage{comment}
+\usepackage{fancyvrb}
+\usepackage{geometry}
+\pagestyle{empty}
+ \geometry{
+ a4paper,
+ total={175mm,260mm},
+ left=15mm,
+ top=15mm,
+ }
+
+\begin{document}
+\begin{quiz}{Introduzione all'Architettura degli Elaboratori}
+
+%#######################
+\begin{cloze}[points=1,shuffle=false]{Organizzazione a livelli e Macchina di Von Neumann}
+Determinare se sono vere o false le seguenti affermazioni:
+\begin{itemize}
+    \item Il livello ISA (Instruction Set Architecture) è il livello del linguaggio macchina che descrive le istruzioni eseguite dai circuiti elettronici.
+    \begin{multi}[inline]
+        \item* Vero 
+        \item Falso
+    \end{multi}
+    %
+    \item Nella macchina di Von Neumann dati e programma sono rappresentati entrambi come sequenze di bit in memoria centrale.
+    \begin{multi}[inline]
+        \item* Vero 
+        \item Falso
+    \end{multi}
+    %
+    \item Nell'architettura di Von Neumann, i programmi sono circuiti combinatori, composti da porte logiche dotate di 1 o più ingressi.
+    \begin{multi}[inline]
+        \item Vero 
+        \item* Falso
+    \end{multi}
+    %
+    \item Nella CPU di Von Neumann, un ciclo di data path consiste nel processo di far passare due operandi attraverso l'ALU e memorizzarne il risultato. 
+    \begin{multi}[inline]
+        \item* Vero 
+        \item Falso
+    \end{multi}
+\end{itemize}
+\end{cloze}
+
+%#######################
+\begin{matching}[points=1,shuffle=true]{Traduzione e astrazione}
+Numera [0-4] i passi necessari per passare da un linguaggio ad alto livello, ad una rappresentazione eseguibile dal calcolatore. L'ordinamento deve essere cronologico.
+\item Programma in C            \answer 0
+\item Compilazione              \answer 1
+\item Programma in assembler    \answer 2
+\item Assemblatore              \answer 3
+\item Programma in binario      \answer 4
+\end{matching}
+
+%#######################
+\begin{cloze}[points=1,shuffle=false]{Input e Output}
+Un terminale video a colori utilizza 8 bit per pixel per ciascuno dei tre colori primari (rosso, verde e blu) e ha una risoluzione di 1280x1024 pixel.
+\begin{itemize}
+    \item Qual è la dimensione (in byte) del frame buffer associato? 
+    \begin{numerical}
+        \item 3932160
+    \end{numerical}
+    \item Quanto tempo occorre (in secondi) per trasmettere un frame attraverso una rete da 100 Mbit/s?
+    \begin{numerical}
+        \item[tolerance=0.02] 0.31
+    \end{numerical}
+\end{itemize}
+\end{cloze}
+
+%#######################
+\begin{cloze}[points=1,shuffle=false]{Prestazioni della CPU}
+Si considerino tre diversi processori P1, P2 e P3 che eseguono lo stesso insieme di istruzioni. 
+\begin{itemize}
+    \item P1 ha una frequenza di clock di 3 GHz e un CPI (Cicli Per Istruzione) di 1,5.
+    \item P2 ha una frequenza di clock di 2,5 GHz e un CPI di 1,0.
+    \item P3 ha una frequenza di clock di 4,0 GHz e un CPI di 2,2.
+\end{itemize}
+%    
+\begin{itemize}
+    \item Quale processore ha le prestazioni migliori espresse in numero di istruzioni al secondo? 
+    \begin{multi}
+        \item  P1
+        \item* P2
+        \item  P3
+    \end{multi}
+    %
+    \item Determinare il processore (scelto fra i 3 riportati) che necessita del numero di cicli di clock più alto, supponendo che tutti eseguano un programma in 10 secondi.
+    \begin{multi}
+        \item  P1
+        \item  P2
+        \item* P3
+    \end{multi}
+    %
+    \item Si vorrebbe ridurre il tempo di esecuzione del 30\% (da 10 a 7 secondi), ma per raggiungere questo obiettivo il CPI aumenterebbe del 20\%. Quale sarebbe la frequenza di clock che consentirebbe questa riduzione del tempo di esecuzione per il processore P1? 
+    [Risposta espressa in GHz]
+    \begin{numerical}
+        \item 5.14
+    \end{numerical}
+\end{itemize}
+\end{cloze}
+
+%#######################
+\begin{cloze}[points=1,shuffle=false]{Prestazioni della CPU}
+    Si considerino tre diversi processori P1, P2 e P3 che eseguono lo stesso insieme di istruzioni. 
+    \begin{itemize}
+        \item P1 ha una frequenza di clock di 5 GHz e un CPI (Cicli Per Istruzione) di 2,0. 
+        \item P2 ha una frequenza di clock di 6 GHz e un CPI di 4,0.
+        \item P3 ha una frequenza di clock di 2 GHz e un CPI di 1,0.
+    \end{itemize}
+    % 
+    \begin{itemize}
+    \item Quale processore ha le prestazioni peggiori espresse in numero di istruzioni al secondo? 
+    \begin{multi}
+        \item  P1
+        \item* P2
+        \item  P3
+    \end{multi}
+    %
+    \item Si consideri un programma costituito da $5\cdot10^9$ istruzioni. Determinare il tempo (in secondi) richiesto da P3 per eseguire il programma.     
+    Nota: esprimere il risultato usando il punto . come separatore tra la parte intera e quella frazionaria se necessario. Non inserire alcun carattere di spaziatura o unità di misura.
+    \begin{numerical}
+        \item 2.5
+    \end{numerical}   
+    \end{itemize}
+\end{cloze}
+
+%#######################
+\begin{cloze}[points=1,shuffle=false]{Prestazioni della CPU}
+    Si considerino tre diversi processori P1, P2 e P3 che eseguono lo stesso insieme di istruzioni. 
+    \begin{itemize}
+        \item P1 ha una frequenza di clock di 2,5 GHz e un CPI (Cicli Per Istruzione) di 2,5. 
+        \item P2 ha una frequenza di clock di 3 GHz e un CPI di 2,0.
+        \item P3 ha una frequenza di clock di 2 GHz e un CPI di 1,0.
+    \end{itemize}
+    % 
+    \begin{itemize}
+    \item Quale processore ha le prestazioni peggiori espresse in numero di istruzioni al secondo? 
+    \begin{multi}
+        \item* P1
+        \item  P2
+        \item  P3
+    \end{multi}
+    %
+    \item Si consideri un programma costituito da $2\cdot10^9$ istruzioni. Determinare il tempo (in secondi) richiesto da P3 per eseguire il programma.
+    Nota: esprimere il risultato usando il punto . come separatore tra la parte intera e quella frazionaria se necessario. Non inserire alcun carattere di spaziatura o unità di misura.
+    \begin{numerical}
+        \item 1
+    \end{numerical}   
+    \end{itemize}
+\end{cloze}
+
+%#######################
+\begin{cloze}[points=1,shuffle=true]{Prestazioni della CPU}
+Si considerino due differenti implementazioni dello stesso insieme di istruzioni che si possono suddividere in quattro classi: A, B, C e D, a seconda del loro CPI (Cicli Per Istruzione). 
+
+Il processore P1 ha una frequenza di clock di 2,5 GHz e un CPI rispettivamente di 1, 2, 3 e 3, mentre il processore P2 ha una frequenza di clock di 3 GHz e un CPI rispettivamente di 2, 2, 2 e 2.
+
+Si consideri un programma costituito da $10^6$ istruzioni così suddivise: 10\% di classe A, 20\% di classe B, 50\% di classe C e 20\% di classe D. 
+
+\begin{itemize}
+    \item Qual è il CPI totale per P1? 
+        \begin{numerical}
+            \item 2.6 
+        \end{numerical}
+    \item Qual è il CPI totale per P2? 
+        \begin{numerical}
+            \item 2 
+        \end{numerical}
+    \item Determinare il numero di cicli di clock richiesti da P1 per eseguire il programma.
+        \begin{numerical}
+            \item 260000
+        \end{numerical}
+    \item Determinare il numero di cicli di clock richiesti da P2 per eseguire il programma.
+        \begin{numerical}
+            \item 200000
+        \end{numerical}
+\end{itemize}
+\end{cloze}
+
+%#######################
+\begin{cloze}[points=1,shuffle=false]{Prestazioni della CPU}
+I compilatori possono avere un profondo impatto sulle prestazioni delle applicazioni per un certo processore. Si supponga che, per un certo programma, il compilatore A produca un numero di istruzioni pari a $10^9$, e queste istruzioni richiedono un tempo di esecuzione di $1,1$ secondi, mentre il compilatore B produca un numero di istruzioni pari a $1,2 * 10^9$ con un tempo di esecuzione di $1,5$ secondi.
+
+\begin{itemize}
+    \item Qual è il CPI medio per il compilatore A? (Periodo di clock = 1ns)
+    \begin{numerical}
+        \item[tolerance=0.1] 1.1
+    \end{numerical}
+    \item Qual è il CPI medio per il compilatore B? (Periodo di clock = 1ns) 
+    \begin{numerical}
+        \item[tolerance=0.1] 1.25
+    \end{numerical}    
+    % \item Si supponga che il programma compilato venga eseguito sui due processori. Se il tempo di esecuzione sui due processori risulta uguale, di quanto dovrà essere più veloce il clock del processore che esegue il codice compilato da A rispetto al clock del processore che esegue il codice compilato da B?
+    % \begin{numerical}
+    %     \item[tolerance=0.1] 1.37
+    % \end{numerical}
+    \item Viene sviluppato un nuovo compilatore che crea un programma costituito solamente da 600 milioni di istruzioni con un CPI medio di $1,1$. Quale sarà lo ``speedup'' ottenuto con il nuovo compilatore rispetto al tempo di esecuzione dei programmi compilati con i compilatori A e B eseguiti sul calcolatore originario?\\
+    Per il compilatore A: 
+    \begin{numerical}
+        \item[tolerance=0.1] 1.67
+    \end{numerical}
+    Per il compilatore B: 
+    \begin{numerical}
+        \item[tolerance=0.1] 2.27
+    \end{numerical}
+\end{itemize}
+\end{cloze}
+
+%#######################
+\begin{cloze}[points=1,shuffle=true]{Trabocchetti}
+Si considerino i seguenti processori: P1 ha una frequenza di clock di 4 GHz, un CPI medio di 0,9 e richiede l'esecuzione di $5,0*10^9$ istruzioni per eseguire un programma, mentre P2 ha una frequenza di clock di 3 GHz, un CPI medio di 0,75 e richiede l'esecuzione di $1,0*10^9$ istruzioni per eseguire lo stesso programma.
+\begin{itemize}
+    \item Vero o falso? Si considerino i calcolatori P1 e P2: Il calcolatore con il clock a frequenza maggiore ha le prestazioni maggiori.
+        \begin{multi}[inline]
+            \item Vero 
+            \item* Falso
+        \end{multi}
+    \item Un errore comune è quello di utilizzare i MIPS (milioni di istruzioni per secondo) per confrontare le prestazioni di due processori e concludere che il processore con il valore di MIPS più elevato sia anche quello più performante.\\
+    Vero o Falso? Il processore P1 ha il MIPS più elevato dal processore P2.
+        \begin{multi}[inline]
+            \item* Vero 
+            \item Falso
+        \end{multi}
+    \item Un'altra unità di misura delle prestazioni di uso comune è il MFLOPS (milioni di istruzioni in virgola mobile per secondo, Millions of FLoating point Operations Per Second), definito come:\\
+    MFLOPS=Numero di operazioni FP / (tempo di esecuzione * $1,0*10^9$)\\
+    \\
+    Si supponga che il 40\% delle istruzioni eseguite da P1 e P2 sia costituito da istruzioni floating-point e si determinino i MFLOPS dei processori.\\
+    Vero o Falso? Il processore P1 ha il MFLOPS più elevato dal processore P2.
+        \begin{multi}[inline]
+            \item* Vero 
+            \item Falso
+        \end{multi}
+\end{itemize}
+\end{cloze}
+
+%#######################
+\begin{cloze}[points=1,shuffle=true]{Trabocchetti}
+Un trabocchetto comune è quello per cui ci si aspetta un miglioramento delle prestazioni complessive modificando solamente una parte del calcolatore. Questo non è sempre vero.
+
+Si consideri un calcolatore che esegue un programma che richiede 250~s, 70~s dei quali sono spesi per l'esecuzione di istruzioni del tipo floating point (FP), 85~s per l'esecuzione di istruzioni di lettura/scrittura, 40~s per l'esecuzione di istruzioni di salto condizionato, e il restante del tempo per l'esecuzione delle operazioni su interi (INT).
+\begin{itemize}
+    \item Calcolare il tempo totale di esecuzione (in secondi) se il tempo di esecuzione delle operazioni FP viene ridotto del 20\%. 
+    \begin{numerical}
+        \item 236
+    \end{numerical}
+    \item Si può ridurre il tempo totale del 20\% riducendo solamente il tempo di esecuzione dei salti condizionati?
+    \begin{multi}[inline]
+        \item Vero 
+        \item* Falso
+    \end{multi}
+\end{itemize}
+\end{cloze}
+
+\end{quiz}
+\end{document}
+

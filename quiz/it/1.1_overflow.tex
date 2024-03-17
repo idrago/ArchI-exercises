@@ -1,0 +1,176 @@
+\documentclass[11pt]{article}
+%\usepackage[handout, nostamp]{moodle}
+%\usepackage{catchfilebetweentags}
+\usepackage[nostamp]{moodle}
+\usepackage{graphicx}
+\usepackage{comment}
+\usepackage{fancyvrb}
+\usepackage{geometry}
+\pagestyle{empty}
+ \geometry{
+ a4paper,
+ total={175mm,260mm},
+ left=15mm,
+ top=15mm,
+ }
+
+\begin{document}
+\begin{quiz}{Overflow}
+
+%#######################
+\begin{cloze}[points=1,shuffle=false]{Overflow - 1}
+\begin{itemize}
+    \item Si supponga che 127 e 122 siano numeri decimali interi senza segno su 8 bit. Calcolare 127 + 122 e dichiarare se si verifica overflow. 
+    \begin{multi}[inline]
+        \item Overflow 
+        \item* No overflow
+    \end{multi}
+    \item Si supponga che 127 e 122 siano numeri decimali interi dotati di segno su 8 bit, codificati in modulo e segno. Calcolare 127 + 122 e dichiarare se si verifica overflow. 
+    \begin{multi}[inline]
+        \item* Overflow 
+        \item No overflow
+    \end{multi}
+    \item Si supponga che -127 e 122 siano numeri decimali interi dotati di segno su 8 bit, codificati in modulo e segno. Calcolare -127 - 122 e dichiarare se si verifica overflow.
+    \begin{multi}[inline]
+        \item* Overflow 
+        \item No overflow
+    \end{multi}
+\end{itemize}
+\end{cloze}
+
+%#######################
+\begin{cloze}[points=1,shuffle=false]{Overflow - 2}
+Siano dati a=$0b11110101$, b=$0b11101010$, due numeri binari su 8 bit.
+Calcolare il risultato della somma (a + b) scrivendo il valore ottenuto in decimale e indicare la presenza di un eventuale overflow considerando gli operandi codificati rispettivamente come:
+\begin{itemize}
+    \item Numeri interi positivi
+    \begin{numerical}
+        \item 479
+    \end{numerical}
+    \begin{multi}[inline]
+        \item* Overflow 
+        \item No overflow
+    \end{multi}
+    %
+    \item Numeri interi con segno rappresentati in modulo e segno
+    \begin{numerical}
+        \item -223
+    \end{numerical}
+    \begin{multi}[inline]
+        \item* Overflow 
+        \item No overflow
+    \end{multi}
+    %
+    \item Numeri interi con segno rappresentati in complemento a 1
+    \begin{numerical}
+        \item -31
+    \end{numerical}
+    \begin{multi}[inline]
+        \item Overflow 
+        \item* No overflow
+    \end{multi}
+    %
+    \item numeri interi con segno rappresentati in complemento a 2
+    \begin{numerical}
+        \item -33
+    \end{numerical}
+    \begin{multi}[inline]
+        \item Overflow 
+        \item* No overflow
+    \end{multi}
+\end{itemize}
+\end{cloze}
+
+%#######################
+\begin{cloze}[points=1,shuffle=false]{Saturazione}
+Una caratteristica che in genere non si trova nei microprocessori a utilizzo generale è la saturazione. Saturazione significa che quando si verifica un overflow, il risultato assume il valore del numero positivo o negativo più grande rappresentabile, invece del valore del risultato calcolato nell'aritmetica in complemento a 2. La saturazione è ampiamente utilizzata nelle operazioni multimediali. Per esempio, sarebbe fastidioso se girando la manopola del volume della radio il volume aumentasse man mano per diventare poi improvvisamente bassissimo. Con un meccanismo di saturazione, il dispositivo, una volta raggiunto il volume massimo, continuerebbe a riprodurre il suono a quel volume anche se si
+continua a girare la manopola. Le estensioni multimediali degli insiemi standard di istruzioni prevedono spesso l'aritmetica con saturazione.
+
+\begin{itemize}
+    \item Si supponga che A=$0b11010110$ e B=$0b10010111$ siano numeri interi dotati di segno su 8 bit, codificati in complemento a 2. Calcolare A + B utilizzando l'aritmetica con saturazione e scrivere il risultato in notazione decimale.
+    \begin{numerical}
+        \item -128
+    \end{numerical}
+    \item Si supponga che A=$0b11010110$ e B=$0b10010111$ siano numeri decimali interi dotati di segno su 8 bit, codificati in complemento a 2. Calcolare A - B utilizzando l'aritmetica con saturazione e scrivere il risultato in notazione decimale.
+    \begin{numerical}
+        \item 63
+    \end{numerical}
+    \item Si supponga che 151 e 214 siano numeri decimali interi senza segno su 8 bit. Calcolare 151 + 214 utilizzando l'aritmetica con saturazione e scrivere il risultato in notazione decimale.
+    \begin{numerical}
+        \item 255
+    \end{numerical}
+\end{itemize}
+\end{cloze}
+
+%#######################
+\begin{cloze}[points=1,shuffle=true]{Load e store byte signed - 1}
+    Si supponga che un programma RISC-V abbia le seguenti variabili definite nel Segmento Dati:\\\\
+    \emph{
+        x: .byte 79 \\
+        y: .byte 49 \\
+    }\\\\
+        
+    Interpretando i bit del registro t0 come un numero intero in complemento a due, quale numero (in rappresentazione decimale) sarà contenuto nel registro t0 dopo l'esecuzione del seguente frammento di codice?\\\\
+    \embedaspict{
+    \Large
+    \begin {tabular}{l}
+        la  t0, x       \\
+        lb  t0, 0(t0)   \\
+        la  t1, y       \\
+        lb  t1, 0(t1)   \\ 
+        add t0, t1, t0  \\
+        la  t2, y       \\
+        sb  t0, 0(t2)   \\
+        lb  t0, 0(t2)   \\
+    \end{tabular}
+    }\\
+
+    \begin{numerical}
+        \item -128
+    \end{numerical}    
+\end{cloze}
+
+%#######################
+\begin{cloze}[points=1,shuffle=true]{Load e store byte signed - 2}
+    Si supponga che un programma RISC-V abbia le seguenti variabili definite nel Segmento Dati:\\\\
+    \emph{
+        x: .byte -88 \\
+        y: .byte -41 \\
+    }\\\\
+        
+    Interpretando i bit del registro t0 come un numero intero in complemento a due, quale numero (in rappresentazione decimale) sarà contenuto nel registro t0 dopo l'esecuzione del seguente frammento di codice?\\\\
+    \embedaspict{
+    \Large
+    \begin {tabular}{l}
+        la  t0, x       \\
+        lb  t0, 0(t0)   \\
+        la  t1, y       \\
+        lb  t1, 0(t1)   \\ 
+        add t0, t1, t0  \\
+        la  t2, y       \\
+        sb  t0, 0(t2)   \\
+        lb  t0, 0(t2)   \\
+    \end{tabular}
+    }\\
+    
+    \begin{numerical}
+        \item 127
+    \end{numerical}    
+\end{cloze}
+
+%#######################
+\begin{cloze}[points=1,shuffle=false]{Vero o Falso}
+    Indicare se le seguenti affermazioni sono vere o false.
+    
+    Con 8 bit è possibile rappresentare:
+    \begin{itemize}
+    \item tutti gli interi non negativi minori o uguali a 255 in binario puro.\begin{multi}[inline]\item* Vero \item Falso\end{multi}
+    %\item tutti gli interi non negativi minori o uguali a 255 in modulo e segno.\begin{multi}[inline]\item Vero \item* Falso\end{multi}
+    \item tutti gli interi compresi nell'intervallo $[-256,+255]$ in complemento a due.\begin{multi}[inline]\item Vero \item* Falso\end{multi}
+    %\item tutti gli interi compresi nell'intervallo $[-127,+127]$ in complemento a uno.\begin{multi}[inline]\item* Vero \item Falso\end{multi}
+\end{itemize}
+\end{cloze}
+
+\end{quiz}
+\end{document}
+

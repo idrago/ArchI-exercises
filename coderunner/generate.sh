@@ -12,5 +12,5 @@ for i in $folders; do
     fi;
 
     echo "Generate question $j"
-    python3 ./generate_question.py $(dirname $i) $j.xml
+    python3 ./generate_question.py $(dirname $i) $j
 done

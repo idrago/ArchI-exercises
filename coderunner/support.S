@@ -9,18 +9,17 @@
 .equ SYS_READ,    63
 
 # some constant to check calling conventions
-# TODO: make them 'random'
-.equ C01, 6043
-.equ C02, 6211
-.equ C03, 6359
-.equ C04, 6563
-.equ C05, 6733
-.equ C06, 6907
-.equ C07, 7069
-.equ C08, 7253
-.equ C09, 7487
-.equ C10, 7621
-.equ FLAG_CALL, 66666
+.equ C01, 326082506895068
+.equ C02, 232851651844210
+.equ C03, 327600777833497
+.equ C04, 301188876459044
+.equ C05, 326129751535302
+.equ C06, 362186001968432
+.equ C07, 326651590061523
+.equ C08, 408174364268937
+.equ C09, 228838004907967
+.equ C10, 268965884335809
+.equ FLAG_CALL, 230083545423227
 
 ################################################################################
 # .dss Section
@@ -63,7 +62,7 @@ __rsp:     .string "sp: "
 __array:   .string "array = "
 __nl:      .string "\n"
 __space:   .string " "
-__error_1: .string "The solution does not respect the RISC-V calling conventions.\n"
+__error_1: .string "The solution does not properly preserve the saved registers.\n"
 __error_2: .string "The solution is not invoking the requested support function.\n"
 
 ################################################################################
@@ -351,6 +350,53 @@ __print_array_exit:
         ld    ra, 24(sp)
         addi  sp, sp, 32
         ret
+
+###############################################################################
+# Procedure print_array_half(v)
+# a0 -> v address of array of half-word
+# a1 -> v size of the array
+################################################################################
+__print_array_half:
+        addi  sp, sp, -32
+        sd    s1, 0(sp)
+        sd    a0, 8(sp)
+        sd    a1, 16(sp)
+        sd    ra, 24(sp)
+
+        # print help string
+        la    a0, __array
+        jal   __printstr
+        ld    a0, 8(sp)
+        ld    a1, 16(sp)
+
+        # print the sequence of half-word
+        li    s1, 0 # index
+__print_array_half_loop:
+        beq   s1, a1, __print_array_half_exit
+
+        slli  t1, s1, 1     # calculates offset in the array
+        add   t1, t1, a0    # t1 has the address of the element
+        lh    t0, 0(t1)     # t0 has the number to print
+
+        addi  a0, t0, 0     # print a number
+        jal   __num_print
+
+        la    a0, __space
+        jal   __printstr
+
+        ld    a0, 8(sp)      # recover the value of a0
+        ld    a1, 16(sp)     # recover the value of a1
+        addi  s1, s1, 1      # move to the next DWORD
+        j     __print_array_half_loop
+
+__print_array_half_exit:
+        la    a0, __nl
+        jal   __printstr
+
+        ld    s1, 0(sp)
+        ld    ra, 24(sp)
+        addi  sp, sp, 32
+        ret        
 
 ################################################################################
 # __strlen
