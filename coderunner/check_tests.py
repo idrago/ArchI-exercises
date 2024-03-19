@@ -4,8 +4,9 @@ from yaml.loader import SafeLoader
 TMPSRC = "/tmp/prog.s"
 TMPBIN = "/tmp/prog"
 
-SPIKE = "/opt/riscv/bin/spike"
-PK = "/opt/riscv/riscv-pk/build/pk"
+# get the path of the spike and pk executables using which commands
+SPIKE = subprocess.check_output("which spike", shell=True).decode().strip()
+PK = subprocess.check_output("which pk", shell=True).decode().strip()
 
 # read the source code file from the first argument, if not present exit
 if len(sys.argv) < 2:

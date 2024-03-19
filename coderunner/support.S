@@ -1,12 +1,12 @@
 # Help functions to control whether the exercise is correct
 
 # syscalls codes & co
-.equ SUCCESS,     0
-.equ STDOUT,      1
-.equ WRITE,       64
-.equ EXIT,        93
-.equ STDIN,       0
-.equ SYS_READ,    63
+.equ __SUCCESS,     0
+.equ __STDOUT,      1
+.equ __WRITE,       64
+.equ __EXIT,        93
+.equ __STDIN,       0
+.equ __SYS_READ,    63
 
 # some constant to check calling conventions
 .equ C01, 326082506895068
@@ -45,6 +45,12 @@ __ra4:     .string "a4: "
 __ra5:     .string "a5: "
 __ra6:     .string "a6: "
 __ra7:     .string "a7: "
+__rt0:     .string "t0: "
+__rt1:     .string "t1: "
+__rt2:     .string "t2: "
+__rt3:     .string "t3: "
+__rt4:     .string "t4: "
+__rt5:     .string "t5: "
 __rs0:     .string "s0: "
 __rs1:     .string "s1: "
 __rs2:     .string "s2: "
@@ -212,10 +218,10 @@ __end_checks:
 # read string from STDIN
 ################################################################################
 .macro read_string buffer MAX_CHARS
-      li a0, STDIN
+      li a0, __STDIN
       la a1, \buffer
       li a2, \MAX_CHARS
-      li a7, SYS_READ
+      li a7, __SYS_READ
       ecall
 .endm 
 
@@ -294,9 +300,9 @@ __printstr:
         jal   __strlen
         add   a2, a0, zero # length of string
 
-        li    a0, STDOUT
+        li    a0, __STDOUT
         mv    a1, s1        # string to print
-        li    a7, WRITE     # syscall number for write
+        li    a7, __WRITE     # syscall number for write
         ecall
 
         ld    ra, 0(sp)
@@ -416,6 +422,6 @@ __strlen:
 # exit(0)
 ################################################################################
 __exit:
-        li    a0, SUCCESS
-        li    a7, EXIT
+        li    a0, __SUCCESS
+        li    a7, __EXIT
         ecall

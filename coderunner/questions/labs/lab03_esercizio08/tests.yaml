@@ -1,0 +1,76 @@
+---
+name: "lab03_esercizio08"
+preload: ""
+testcases:
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          y: .word  1
+          x: .word  1
+    expected: "t1: 1"
+    display: "SHOW"
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          y: .word  0
+          x: .word  0
+    expected: "t1: 0"
+    display: "SHOW"
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          y: .word  -1
+          x: .word  -1
+    expected: "t1: -1"
+    display: "SHOW"
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          y: .word  6
+          x: .word  -1
+    expected: "t1: 6"
+    display: "SHOW"
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          y: .word  1
+          x: .word  2
+    expected: "t1: 2"
+    display: "SHOW"
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          y: .word  1
+          x: .word  3
+    expected: "t1: 2"
+    display: "SHOW"    
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          y: .word  2
+          x: .word  3
+    expected: "t1: 3"
+    display: "SHOW"    
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          y: .word  5
+          x: .word  4
+    expected: "t1: 6"
+    display: "SHOW"
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          y: .word  -1
+          x: .word  -3
+    expected: "t1: -1"
+    display: "SHOW"

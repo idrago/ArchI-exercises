@@ -1,0 +1,33 @@
+---
+name: "lab03_esercizio11"
+preload: ""
+testcases:
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          N: .word  1
+    expected: "t1: 1"
+    display: "SHOW"
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          N: .word  2
+    expected: "t1: 5"
+    display: "SHOW"
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          N: .word  3
+    expected: "t1: 14"
+    display: "SHOW"
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          N: .word  4
+    expected: "t1: 30"
+    display: "SHOW"
+ 

@@ -1,0 +1,13 @@
+<p>
+Si scriva un programma RISC-V che calcoli la somma dei primi N quadrati perfetti. Il programma deve assumere che N sia nel registro t0 e lasciare il risultato sul registro t1.
+</p>
+
+Soluzione possible in C:
+<pre>
+    // N -> è già caricato su t0
+    int S=0;
+    int i;
+    for (i=1; i<=N; ++i){
+        S = S + i*i;
+    }
+</pre>

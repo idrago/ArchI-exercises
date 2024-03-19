@@ -1,0 +1,53 @@
+---
+name: "lab03_esercizio10"
+preload: ""
+testcases:
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          N: .word  1
+    expected: "t1: 1"
+    display: "SHOW"
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          N: .word  2
+    expected: "t1: 2"
+    display: "SHOW"
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          N: .word  3
+    expected: "t1: 3"
+    display: "SHOW" 
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          N: .word  4
+    expected: "t1: 5"
+    display: "SHOW" 
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          N: .word  5
+    expected: "t1: 8"
+    display: "SHOW" 
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          N: .word  6
+    expected: "t1: 13"
+    display: "SHOW"
+  - testcode: |
+      printreg t1, __rt1
+      check_saved_registers
+      .section .data
+          N: .word  20
+    expected: "t1: 10946"
+    display: "SHOW"      

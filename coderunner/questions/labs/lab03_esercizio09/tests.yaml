@@ -1,0 +1,103 @@
+---
+name: "lab03_esercizio09"
+preload: ""
+testcases:
+  - testcode: |
+      printreg t3, __rt3
+      check_saved_registers
+      .section .data
+          y: .word  1
+          x: .word  0
+          z: .word  -10
+    expected: "t3: 1"
+    display: "SHOW"
+  - testcode: |
+      printreg t3, __rt3
+      check_saved_registers
+      .section .data
+          y: .word  1
+          x: .word  0
+          z: .word  0
+    expected: "t3: 1"
+    display: "SHOW"
+  - testcode: |
+      printreg t3, __rt3
+      check_saved_registers
+      .section .data
+          y: .word  -1
+          x: .word  2
+          z: .word  0
+    expected: "t3: 2"
+    display: "SHOW"
+  - testcode: |
+      printreg t3, __rt3
+      check_saved_registers
+      .section .data
+          y: .word  6
+          x: .word  -1
+          z: .word  0
+    expected: "t3: 6"
+    display: "SHOW"    
+  - testcode: |
+      printreg t3, __rt3
+      check_saved_registers
+      .section .data
+          y: .word  7
+          x: .word  6
+          z: .word  6
+    expected: "t3: 7"
+    display: "SHOW"    
+  - testcode: |
+      printreg t3, __rt3
+      check_saved_registers
+      .section .data
+          y: .word  1
+          x: .word  2
+          z: .word  3
+    expected: "t3: 3"
+    display: "SHOW"    
+  - testcode: |
+      printreg t3, __rt3
+      check_saved_registers
+      .section .data
+          y: .word  2
+          x: .word  1
+          z: .word  3
+    expected: "t3: 3"
+    display: "SHOW"    
+  - testcode: |
+      printreg t3, __rt3
+      check_saved_registers
+      .section .data
+          y: .word  3
+          x: .word  2
+          z: .word  1
+    expected: "t3: 3"
+    display: "SHOW"    
+  - testcode: |
+      printreg t3, __rt3
+      check_saved_registers
+      .section .data
+          y: .word  1
+          x: .word  3
+          z: .word  2
+    expected: "t3: 3"
+    display: "SHOW"    
+  - testcode: |
+      printreg t3, __rt3
+      check_saved_registers
+      .section .data
+          y: .word  3
+          x: .word  2
+          z: .word  1
+    expected: "t3: 3"
+    display: "SHOW"    
+  - testcode: |
+      printreg t3, __rt3
+      check_saved_registers
+      .section .data
+          y: .word  1
+          x: .word  3
+          z: .word  2
+    expected: "t3: 3"
+    display: "SHOW"          
