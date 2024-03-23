@@ -1,0 +1,92 @@
+---
+name: "lab04_01_avg4"
+preload: ""
+testcases:
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        v1: .word 1
+        v2: .word 2
+        v3: .word 3
+        v4: .word 4
+        result: .word 0
+    expected: "result = 2"
+    display: "SHOW"
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        v1: .word 1
+        v2: .word 1
+        v3: .word 1
+        v4: .word 1
+        result: .word 0
+    expected: "result = 1"
+    display: "SHOW"
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        v1: .word 5
+        v2: .word 2
+        v3: .word 4
+        v4: .word 10
+        result: .word 0
+    expected: "result = 5"
+    display: "SHOW"
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        v1: .word -5
+        v2: .word -2
+        v3: .word -4
+        v4: .word -10
+        result: .word 0
+    expected: "result = -6"
+    display: "SHOW"    
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        v1: .word -10
+        v2: .word -8
+        v3: .word -4
+        v4: .word -10
+        result: .word 0
+    expected: "result = -8"
+    display: "SHOW"       
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        v1: .word 1024
+        v2: .word 2048
+        v3: .word 4096
+        v4: .word 8192
+        result: .word 0
+    expected: "result = 3840"
+    display: "SHOW"  
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        v1: .word 1023
+        v2: .word 2047
+        v3: .word 4095
+        v4: .word 8192
+        result: .word 0
+    expected: "result = 3839"
+    display: "SHOW"         
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        v1: .word 0
+        v2: .word 0
+        v3: .word 0
+        v4: .word 0
+        result: .word -1
+    expected: "result = 0"
+    display: "SHOW"       

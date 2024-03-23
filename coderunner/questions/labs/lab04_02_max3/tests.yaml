@@ -1,0 +1,84 @@
+---
+name: "lab04_02_max3"
+preload: ""
+testcases:
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        x: .word 1
+        y: .word 2
+        z: .word 3
+        result: .word 0
+    expected: "result = 3"
+    display: "SHOW"
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        x: .word 1
+        y: .word 1
+        z: .word 1
+        result: .word 0
+    expected: "result = 1"
+    display: "SHOW"
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        x: .word 5
+        y: .word 2
+        z: .word 4
+        result: .word 0
+    expected: "result = 5"
+    display: "SHOW"
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        x: .word -5
+        y: .word -2
+        z: .word -4
+        result: .word 0
+    expected: "result = -2"
+    display: "SHOW"    
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        x: .word -10
+        y: .word -8
+        z: .word -4
+        result: .word 0
+    expected: "result = -4"
+    display: "SHOW"       
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        x: .word 1024
+        y: .word 2048
+        z: .word 4096
+        result: .word 0
+    expected: "result = 4096"
+    display: "SHOW"  
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        x: .word 1023
+        y: .word 4095
+        z: .word 2047
+        result: .word 0
+    expected: "result = 4095"
+    display: "SHOW"         
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        x: .word 0
+        y: .word 1
+        z: .word 0
+        result: .word -1
+    expected: "result = 1"
+    display: "SHOW"       

@@ -66,6 +66,7 @@ __rs11:    .string "s11: "
 __rra:     .string "ra: "
 __rsp:     .string "sp: "
 __array:   .string "array = "
+__var:     .string "result = "
 __nl:      .string "\n"
 __space:   .string " "
 __error_1: .string "The solution does not properly preserve the saved registers.\n"
@@ -213,6 +214,26 @@ __end_checks:
         j  __exit
 .endm
 
+################################################################################
+# print the content of variable given as parameter to the macro
+################################################################################
+.macro print_word var
+        addi  sp, sp, -8
+        sd    a0, 0(sp)
+
+        la    a0, __var
+        jal   __printstr
+                
+        la    a0, \var
+        lw    a0, 0(a0)
+        jal   __num_print
+
+        la    a0, __nl
+        jal   __printstr        
+
+        ld    a0, 0(sp)
+        addi  sp, sp, 8
+.endm
 
 ################################################################################
 # read string from STDIN
@@ -298,11 +319,11 @@ __printstr:
 
         add   s1, a0, zero
         jal   __strlen
-        add   a2, a0, zero # length of string
+        add   a2, a0, zero  # length of string
 
         li    a0, __STDOUT
         mv    a1, s1        # string to print
-        li    a7, __WRITE     # syscall number for write
+        li    a7, __WRITE   # syscall number for write
         ecall
 
         ld    ra, 0(sp)
