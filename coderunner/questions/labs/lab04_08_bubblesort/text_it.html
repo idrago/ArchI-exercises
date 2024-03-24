@@ -2,13 +2,12 @@
 Scrivere il bubble sort in RISC-V per ordinare un array di double word in memoria (<b>size</b> elementi).
 </p>
 
-<br/>
 Codice C equivalente:
 <pre>
 int change = 1;
 while (change) {
     change = 0;
-    for (int i = 0; i &lt; size; i++)  {
+    for (int i = 0; i &lt; size-1; i++)  {
         if (array[i] &gt; array[i+1]) {
             long temp = array[i];
             array[i] = array[i+1];
@@ -19,10 +18,10 @@ while (change) {
 } 
 </pre>
 
-<br><b>Attenzione:</b>
+<b>Attenzione:</b>
 <ul>
     <li>Usare il seguente codice <samp>main</samp> per lo sviluppo e il debugging nel simulatore RARS</li>
-    <li>Completare il codigo nel campo sottostante</li>
+    <li>Completare il codice nel campo sottostante</li>
 </ul>
 <pre>
 .globl _start

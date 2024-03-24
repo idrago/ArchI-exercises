@@ -2,21 +2,19 @@
 Scrivere il codice per invertire un array di <b>double word</b> in memoria (<b>size</b> elementi).
 </p>
 
-<br/>
 Codice C equivalente:
 <pre>
 for (int i = 0; i &lt; size/2; i++)  {
     long temp = array[i];
     array[i] = array[size-i-1];
     array[size-i-1] = temp;
-}
-        
+}     
 </pre>
 
-<br><b>Attenzione:</b>
+<b>Attenzione:</b>
 <ul>
     <li>Usare il seguente codice <samp>main</samp> per lo sviluppo e il debugging nel simulatore RARS</li>
-    <li>Completare il codigo nel campo sottostante</li>
+    <li>Completare il codice nel campo sottostante</li>
 </ul>
 <pre>
 .globl _start
