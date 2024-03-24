@@ -1,0 +1,108 @@
+---
+name: "lab04_08_bubblesort"
+preload: ""
+testcases:
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word  8                       # size of the array        
+        array:  .dword 8, 7, 6, 5, 4, 3, 2, 1  # array of double
+    expected: "array = 1 2 3 4 5 6 7 8"
+    display: "SHOW"
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word 8                         
+        array:  .dword 2,1,3,2,3,-6,1,23 
+    expected: "array = -6 1 1 2 2 3 3 23"
+    display: "SHOW"    
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word 16
+        array:  .dword 12, 2, 1, 3, 5, 1, 7, 1, -1, 4, -2, -3, 1, 9, -6, 10
+    expected: "array = -6 -3 -2 -1 1 1 1 1 2 3 4 5 7 9 10 12"
+    display: "SHOW"
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word 1
+        array:  .dword 122
+    expected: "array = 122"
+    display: "SHOW"    
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word 2
+        array:  .dword -12, 2
+    expected: "array = -12 2"
+    display: "SHOW"
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word 5
+        array:  .dword 11, 12, 23, 34, -15
+    expected: "array = -15 11 12 23 34"
+    display: "SHOW"
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word 2
+        array:  .dword -128, 0
+    expected: "array = -128 0"
+    display: "SHOW"    
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word 2
+        array:  .dword 2, -127
+    expected: "array = -127 2"
+    display: "SHOW"      
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word 5
+        array:  .dword 1,1,1,1,1
+    expected: "array = 1 1 1 1 1"
+    display: "SHOW"      
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word 5
+        array:  .dword 4,1,1,1,4
+    expected: "array = 1 1 1 4 4"
+    display: "SHOW"  
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word 3
+        array:  .dword 8589934593, 8589934592, -8589934591
+    expected: "array = -8589934591 8589934592 8589934593"
+    display: "SHOW"              
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word 5
+        array:  .dword 1,4,4,4,4
+    expected: "array = 1 4 4 4 4"
+    display: "SHOW"        
+  - testcode: |
+      print_array_double array size
+      check_saved_registers
+      .section .data
+        size:   .word 0
+        array:  .dword 
+    expected: "array ="
+    display: "SHOW"         

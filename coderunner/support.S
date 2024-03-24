@@ -9,17 +9,17 @@
 .equ __SYS_READ,    63
 
 # some constant to check calling conventions
-.equ C01, 326082506895068
-.equ C02, 232851651844210
-.equ C03, 327600777833497
-.equ C04, 301188876459044
-.equ C05, 326129751535302
-.equ C06, 362186001968432
-.equ C07, 326651590061523
-.equ C08, 408174364268937
-.equ C09, 228838004907967
-.equ C10, 268965884335809
-.equ FLAG_CALL, 230083545423227
+.equ __C01, 326082506895068
+.equ __C02, 232851651844210
+.equ __C03, 327600777833497
+.equ __C04, 301188876459044
+.equ __C05, 326129751535302
+.equ __C06, 362186001968432
+.equ __C07, 326651590061523
+.equ __C08, 408174364268937
+.equ __C09, 228838004907967
+.equ __C10, 268965884335809
+.equ __FLAG_CALL, 230083545423227
 
 ################################################################################
 # .dss Section
@@ -85,22 +85,22 @@ __error_2: .string "The solution is not invoking the requested support function.
 .macro messup_temp_regs
 
         # mess up with temp registers
-        li   t0, C01
-        li   t1, C02
-        li   t2, C03
-        li   t3, C04
-        li   t4, C05
-        li   t5, C06
-        li   t6, C07
+        li   t0, __C01
+        li   t1, __C02
+        li   t2, __C03
+        li   t3, __C04
+        li   t4, __C05
+        li   t5, __C06
+        li   t6, __C07
 
         # pedantic: mess up with parameter registers
-        li   a1, C01
-        li   a2, C02
-        li   a3, C03
-        li   a4, C04
-        li   a5, C05
-        li   a6, C06
-        li   a7, C07
+        li   a1, __C01
+        li   a2, __C02
+        li   a3, __C03
+        li   a4, __C04
+        li   a5, __C05
+        li   a6, __C06
+        li   a7, __C07
 .endm
 
 ################################################################################
@@ -110,7 +110,7 @@ __error_2: .string "The solution is not invoking the requested support function.
 
         # flag that shows this function has been called
         la   t0, __FUNC_FLAG
-        li   t1, FLAG_CALL
+        li   t1, __FLAG_CALL
         sd   t1, 0(t0)
 
         # mess up with temp registers
@@ -131,23 +131,23 @@ __error_2: .string "The solution is not invoking the requested support function.
         add  gp,  sp, zero
         add  tp,  sp, zero
 
-        li   s1,  C01
-        li   s2,  C02
-        li   s3,  C03
-        li   s4,  C04
-        li   s5,  C05
-        li   s6,  C06
-        li   s7,  C07
-        li   s8,  C08
-        li   s9,  C09
-        li   s10, C10
+        li   s1,  __C01
+        li   s2,  __C02
+        li   s3,  __C03
+        li   s4,  __C04
+        li   s5,  __C05
+        li   s6,  __C06
+        li   s7,  __C07
+        li   s8,  __C08
+        li   s9,  __C09
+        li   s10, __C10
         add  s11, zero, sp # this one holds SP
 .endm
 
 .macro start_saved_registers_leaf
         start_saved_registers_nonleaf
         la   t0, __FUNC_FLAG
-        li   t1, FLAG_CALL
+        li   t1, __FLAG_CALL
         sd   t1, 0(t0)
 .endm
 
@@ -156,37 +156,37 @@ __error_2: .string "The solution is not invoking the requested support function.
         # check the control variable and restore the initial sp
         la   t0, __FUNC_FLAG
         ld   t0, 0(t0)
-        li   t1, FLAG_CALL
+        li   t1, __FLAG_CALL
         bne  t0, t1, __not_using_function
 
-        li   t0, C01
+        li   t0, __C01
         bne  s1, t0, __not_preserved
 
-        li   t0, C02
+        li   t0, __C02
         bne  s2, t0, __not_preserved
 
-        li   t0, C03
+        li   t0, __C03
         bne  s3, t0, __not_preserved
 
-        li   t0, C04
+        li   t0, __C04
         bne  s4, t0, __not_preserved
 
-        li   t0, C05
+        li   t0, __C05
         bne  s5, t0, __not_preserved
 
-        li   t0, C06
+        li   t0, __C06
         bne  s6, t0, __not_preserved
 
-        li   t0, C07
+        li   t0, __C07
         bne  s7, t0, __not_preserved
 
-        li   t0, C08
+        li   t0, __C08
         bne  s8, t0, __not_preserved
 
-        li   t0, C09
+        li   t0, __C09
         bne  s9, t0, __not_preserved
 
-        li   t0, C10
+        li   t0, __C10
         bne  s10, t0, __not_preserved
 
         bne  s11, sp, __not_preserved
@@ -268,6 +268,25 @@ __end_checks:
 .endm
 
 ################################################################################
+# macro print array double
+################################################################################
+.macro print_array_double array, size
+        addi  sp, sp, -16
+        sd    a0, 0(sp)
+        sd    a1, 8(sp)
+
+        # print results
+        la   a0, \array
+        la   a1, \size
+        lw   a1, 0(a1)
+        jal __print_array_double
+
+        ld    a0, 0(sp)
+        ld    a0, 8(sp)
+        addi  sp, sp, 16
+.endm
+
+################################################################################
 # __num_print - print the content of a0 as decimal
 ################################################################################
 __num_print:
@@ -332,8 +351,55 @@ __printstr:
         ret
 
 ################################################################################
-# Procedure print_array(v)
+# Procedure __print_array_double(v)
 # a0 -> v address of array of DWORD
+# a1 -> v size of the array
+################################################################################
+__print_array_double:
+        addi  sp, sp, -32
+        sd    s1, 0(sp)
+        sd    a0, 8(sp)
+        sd    a1, 16(sp)
+        sd    ra, 24(sp)
+
+        # print help string
+        la    a0, __array
+        jal   __printstr
+        ld    a0, 8(sp)
+        ld    a1, 16(sp)
+
+        # print the sequence of DWORD
+        li    s1, 0 # index
+__print_array_double_loop:
+        beq   s1, a1, __print_array_double_exit
+
+        slli  t1, s1, 3     # calculates offset in the array
+        add   t1, t1, a0    # t1 has the address of the element
+        ld    t0, 0(t1)     # t0 has the number to print
+
+        addi  a0, t0, 0     # print a number
+        jal   __num_print
+
+        la    a0, __space
+        jal   __printstr
+
+        ld    a0, 8(sp)      # recover the value of a0
+        ld    a1, 16(sp)     # recover the value of a1
+        addi  s1, s1, 1      # move to the next DWORD
+        j     __print_array_double_loop
+
+__print_array_double_exit:
+        la    a0, __nl
+        jal   __printstr
+
+        ld    s1, 0(sp)
+        ld    ra, 24(sp)
+        addi  sp, sp, 32
+        ret        
+
+################################################################################
+# Procedure print_array(v)
+# a0 -> v address of array of WORD
 # a1 -> v size of the array
 ################################################################################
 __print_array:

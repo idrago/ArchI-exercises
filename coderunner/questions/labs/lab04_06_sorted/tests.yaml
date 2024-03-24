@@ -1,0 +1,112 @@
+---
+name: "lab04_06_sorted"
+preload: ""
+testcases:
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 8
+        array:  .dword 1, 2, 3, 4, 5, 6, 7, 8
+        result: .word -1
+    expected: "result = 1"
+    display: "SHOW"
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 8                         
+        array:  .dword 2,1,3,2,3,-6,1,23 
+        result: .word 0                 
+    expected: "result = 0"
+    display: "SHOW"    
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 16
+        array:  .dword 12, 2, 1, 3, 5, 1, 7, 1, -1, 4, -2, -3, 1, 9, -6, 10
+        result: .word -1
+    expected: "result = 0"
+    display: "SHOW"
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 1
+        array:  .dword 122
+        result: .word -1
+    expected: "result = 1"
+    display: "SHOW"    
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 2
+        array:  .dword -12, 2
+        result: .word -1
+    expected: "result = 1"
+    display: "SHOW"
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 5
+        array:  .dword 11, 12, 23, 34, -15
+        result: .word -1
+    expected: "result = 0"
+    display: "SHOW"
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 2
+        array:  .dword -128, 0
+        result: .word -1
+    expected: "result = 1"
+    display: "SHOW"    
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 2
+        array:  .dword 2, -127
+        result: .word -1
+    expected: "result = 0"
+    display: "SHOW"      
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 5
+        array:  .dword 1,1,1,1,1
+        result: .word -1
+    expected: "result = 1"
+    display: "SHOW"      
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 5
+        array:  .dword 4,1,1,1,4
+        result: .word -1
+    expected: "result = 0"
+    display: "SHOW"        
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 5
+        array:  .dword 1,4,4,4,4
+        result: .word -1
+    expected: "result = 1"
+    display: "SHOW"        
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 0
+        array:  .dword 
+        result: .word -1
+    expected: "result = 1"
+    display: "SHOW"         

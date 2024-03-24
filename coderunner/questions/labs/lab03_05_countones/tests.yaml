@@ -1,67 +1,68 @@
 ---
-name: "lab03_esercizio13"
+name: "lab03_05_countones"
 preload: ""
 testcases:
   - testcode: |
       printreg t2, __rt2
       check_saved_registers
       .section .data
-        a:     .dword 1
-        b:     .dword 2
-        R:     .dword 3
-    expected: "t2: 13"
+          N: .word  37
+    expected: "t2: 3"
     display: "SHOW"
   - testcode: |
       printreg t2, __rt2
       check_saved_registers
       .section .data
-        a:     .dword 0
-        b:     .dword 0
-        R:     .dword 100
-    expected: "t2: 100"
+          N: .word  63
+    expected: "t2: 6"
     display: "SHOW"
   - testcode: |
       printreg t2, __rt2
       check_saved_registers
       .section .data
-        a:     .dword 0
-        b:     .dword 1
-        R:     .dword 101
-    expected: "t2: 101"
+          N: .word  10
+    expected: "t2: 2"
     display: "SHOW"
   - testcode: |
       printreg t2, __rt2
       check_saved_registers
       .section .data
-        a:     .dword 1
-        b:     .dword 0
-        R:     .dword 121
-    expected: "t2: 121"
+          N: .word  -1
+    expected: "t2: 64"
     display: "SHOW"
   - testcode: |
       printreg t2, __rt2
       check_saved_registers
       .section .data
-        a:     .dword 1
-        b:     .dword 1
-        R:     .dword -10
-    expected: "t2: -20"
-    display: "SHOW"      
-  - testcode: |
-      printreg t2, __rt2
-      check_saved_registers
-      .section .data
-        a:     .dword 3
-        b:     .dword 4
-        R:     .dword 3
-    expected: "t2: 15561"
+          N: .word  15
+    expected: "t2: 4"
     display: "SHOW"
   - testcode: |
       printreg t2, __rt2
       check_saved_registers
       .section .data
-        a:     .dword 100
-        b:     .dword 4
-        R:     .dword 3
-    expected: "t2: -3689348814741910424"
+          N: .word  1024
+    expected: "t2: 1"
     display: "SHOW"
+  - testcode: |
+      printreg t2, __rt2
+      check_saved_registers
+      .section .data
+          N: .word  1
+    expected: "t2: 1"
+    display: "SHOW"
+  - testcode: |
+      printreg t2, __rt2
+      check_saved_registers
+      .section .data
+          N: .word  -2
+    expected: "t2: 63"
+    display: "SHOW"
+  - testcode: |
+      printreg t2, __rt2
+      check_saved_registers
+      .section .data
+          N: .word  4097
+    expected: "t2: 2"
+    display: "SHOW"
+

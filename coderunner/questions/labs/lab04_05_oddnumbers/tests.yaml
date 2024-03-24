@@ -1,58 +1,67 @@
 ---
-name: "lab04_04_maxarray"
+name: "lab04_05_oddnumbers"
 preload: ""
 testcases:
   - testcode: |
       print_word result
       check_saved_registers
       .section .data
+        size:   .word 8                         
+        array:  .byte 2,1,3,2,3,-6,1,23 
+        result: .word 0                 
+    expected: "result = 5"
+    display: "SHOW"    
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
         size:   .word 16
-        array:  .word 12, 2, 1, 3, 5, 1, 7, 1, -1, 4, -2, -3, 1, 9, -6, 10
+        array:  .byte 12, 2, 1, 3, 5, 1, 7, 1, -1, 4, -2, -3, 1, 9, -6, 10
         result: .word -1
-    expected: "result = 12"
+    expected: "result = 10"
     display: "SHOW"
   - testcode: |
       print_word result
       check_saved_registers
       .section .data
         size:   .word 1
-        array:  .word 122
+        array:  .byte 122
         result: .word -1
-    expected: "result = 122"
+    expected: "result = 0"
     display: "SHOW"    
   - testcode: |
       print_word result
       check_saved_registers
       .section .data
         size:   .word 2
-        array:  .word -12, 2
+        array:  .byte -12, 2
         result: .word -1
-    expected: "result = 2"
+    expected: "result = 0"
     display: "SHOW"
   - testcode: |
       print_word result
       check_saved_registers
       .section .data
         size:   .word 5
-        array:  .word 11, 12, 23, 34, 15
+        array:  .byte 11, 12, 23, 34, 15
         result: .word -1
-    expected: "result = 34"
+    expected: "result = 3"
     display: "SHOW"
   - testcode: |
       print_word result
       check_saved_registers
       .section .data
         size:   .word 2
-        array:  .word 2147483647, 0
+        array:  .byte -128, 0
         result: .word -1
-    expected: "result = 2147483647"
+    expected: "result = 0"
     display: "SHOW"    
   - testcode: |
       print_word result
       check_saved_registers
       .section .data
         size:   .word 2
-        array:  .word 1, -2147483648
+        array:  .byte 2, -127
         result: .word -1
     expected: "result = 1"
     display: "SHOW"      
@@ -61,16 +70,25 @@ testcases:
       check_saved_registers
       .section .data
         size:   .word 5
-        array:  .word -2147483648, -2147483647, -2147483646, -2147483644, -2147483643
+        array:  .byte 1,1,1,1,1
         result: .word -1
-    expected: "result = -2147483643"
+    expected: "result = 5"
     display: "SHOW"      
   - testcode: |
       print_word result
       check_saved_registers
       .section .data
         size:   .word 5
-        array:  .word 5, 4, 3, 2, 1
+        array:  .byte 4,1,1,1,4
         result: .word -1
-    expected: "result = 5"
+    expected: "result = 3"
+    display: "SHOW"        
+  - testcode: |
+      print_word result
+      check_saved_registers
+      .section .data
+        size:   .word 5
+        array:  .byte 1,4,4,4,1
+        result: .word -1
+    expected: "result = 2"
     display: "SHOW"        

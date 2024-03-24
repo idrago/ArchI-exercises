@@ -1,0 +1,34 @@
+<p>
+Scrivere il codice RISC-V che verifichi se un <b>array</b> di <b>size</b> elementi in memoria (<b>double word</b> contigue) contiene una sequenza ordinata di numeri interi (crescente). 
+
+Il valore ottenuto (0 se non è ordinato, 1 se è ordinato) va salvato in una variabile identificata con l'etichetta <b>result</b>.
+</p>
+
+<br/>
+Codice C equivalente:
+<pre>
+result = 1;
+for (int i = 0; i &lt; size-1; i++) {
+    if (array[i] &gt; array[i+1]) {
+        result = 0; 
+        break;
+    }
+}
+</pre>
+
+<br><b>Attenzione:</b>
+<ul>
+    <li>Usare il seguente codice <samp>main</samp> per lo sviluppo e il debugging nel simulatore RARS</li>
+    <li>Completare il codigo nel campo sottostante</li>
+</ul>
+<pre>
+.globl _start
+.data
+    size:   .word  8                  # size of the array        
+    array:  .dword 1,2,3,4,5,6,7,8    # array of long integers
+    result: .word  -1                 # store the result
+    
+.text
+_start:
+    # completare con il codice assembly RISC-V nel campo sottostante
+</pre>
